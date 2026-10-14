@@ -21,7 +21,7 @@
   const acts=document.querySelector(".acts");
   const b=document.createElement("button");
   b.className="btn sm pri"; b.id="bInstall"; b.hidden=true; b.style.marginRight="4px"; b.style.alignSelf="center";
-  b.title="Instalar o AutoMarcen como app"; b.textContent="Instalar app";
+  b.title="Instalar o AutoMarcen como app"; b.textContent=matchMedia("(max-width:600px)").matches?"Instalar":"Instalar app";
   if(acts) acts.prepend(b);
   addEventListener("beforeinstallprompt",e=>{e.preventDefault(); ev=e; b.hidden=false});
   b.onclick=async()=>{ if(!ev) return; ev.prompt(); try{await ev.userChoice}catch(_){} ev=null; b.hidden=true };

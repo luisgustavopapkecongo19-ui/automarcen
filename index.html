@@ -299,6 +299,60 @@ textarea.code{font:calc(12px*var(--fs,1))/1.45 var(--mono);min-height:150px;word
 .hform textarea{flex:1;resize:none;min-height:42px;max-height:120px;font:calc(15px*var(--fs,1))/1.4 var(--font);padding:10px 12px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface);color:var(--fg)}
 .hform .btn{height:42px}
 @media (prefers-reduced-motion:reduce){.help{transition:none}}
+/* v0.11: toque — topo do celular, abas, barra de opções, cartão do móvel, painel */
+.views button{min-height:44px;padding:8px 16px;font-size:calc(15px*var(--fs,1))}
+.views .shl{display:none}
+#bMore{display:none}
+.more{position:absolute;top:calc(100% - 4px);right:8px;z-index:30;min-width:220px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:6px;display:flex;flex-direction:column}
+.more[hidden]{display:none}
+.more>*{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 12px;border-radius:10px;font-size:calc(15px*var(--fs,1));font-weight:500;color:var(--fg);text-decoration:none;text-align:left}
+.more>*:hover{background:var(--surface-2)}
+.top{position:relative}
+.only-s{display:none!important}
+@media (max-width:760px){
+  .top{flex-wrap:wrap;row-gap:6px}
+  .proj{flex:1;max-width:none}
+  .proj span{white-space:normal;overflow:visible;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-align:left}
+  #bUndo,#bRedo,#bLook,#bHelp,#bExport{display:none}
+  #bMore{display:grid}
+  .acts .ib{width:44px;height:44px}
+  .savest{height:44px;padding:0 12px!important}
+  .savest span{display:inline!important}
+  .views button{padding:8px 4px}
+  .only-s{display:inline-flex!important}
+}
+@media (max-width:400px){.top .brand{display:none}.top{padding-left:8px}}
+@media (max-width:420px){.views .lgl{display:none}.views .shl{display:inline}}
+@media (max-width:900px),(pointer:coarse){
+  .status{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;pointer-events:auto;padding-right:8px;-webkit-overflow-scrolling:touch}
+  .status::-webkit-scrollbar{display:none}
+  .status .spacer,.status .hide-m{display:none}
+  .status .chip{flex:none;min-height:44px;padding:0 14px;display:inline-flex;align-items:center;font-size:calc(12.5px*var(--fs,1))}
+  .status .chip.ur{padding:0;width:44px;justify-content:center;color:var(--fg)}
+  .status .chip.ur:disabled{opacity:.35}
+  .status .chip.ur svg{width:20px;height:20px}
+  .ctx{bottom:62px}
+  .ctx.mcard{left:8px;right:8px;transform:none;max-width:none;flex-direction:column;align-items:stretch;gap:10px;padding:12px;border-radius:16px;overflow:visible}
+  .mcard .ch{display:flex;align-items:center;gap:10px;min-width:0}
+  .mcard .ch b{display:block;font-size:calc(15px*var(--fs,1));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mcard .ch small{display:block;color:var(--muted);font:500 calc(12px*var(--fs,1)) var(--mono)}
+  .mcard .ch>div{flex:1;min-width:0}
+  .mcard .cx{width:44px;height:44px;display:grid;place-items:center;border-radius:10px;color:var(--muted);flex:none}
+  .mcard .cdims{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .mcard .cdims label{display:flex;flex-direction:column;gap:3px;font-size:calc(11.5px*var(--fs,1));color:var(--muted);font-weight:500}
+  .mcard .cdims .in{min-height:44px;font-size:16px}
+  .mcard .cacts{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+  .mcard .cacts button{min-height:44px;padding:0 12px;border:1px solid var(--line);flex:none}
+  .mcard .cacts .io{width:44px;padding:0;justify-content:center}
+  .mcard .cacts .pri{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);flex:1;justify-content:center}
+}
+@media (max-width:900px),(pointer:coarse){
+  .sws{gap:10px}
+  .sw{width:40px;height:40px}
+  .seg button{min-height:44px;font-size:calc(13.5px*var(--fs,1))}
+}
+@media (pointer:coarse){.tb kbd{display:none}}
+@media (max-width:900px){.status .chip.hide-m{display:none}}
 </style>
 
 <div class="app">
@@ -308,7 +362,7 @@ textarea.code{font:calc(12px*var(--fs,1))/1.45 var(--mono);min-height:150px;word
     <nav class="views" role="tablist" aria-label="Modo">
       <button role="tab" data-view="draw" aria-selected="true">Desenho</button>
       <button role="tab" data-view="3d" aria-selected="false">3D</button>
-      <button role="tab" data-view="parts" aria-selected="false">Peças e corte</button>
+      <button role="tab" data-view="parts" aria-selected="false"><span class="lgl">Peças e corte</span><span class="shl">Corte</span></button>
       <button role="tab" data-view="quote" aria-selected="false">Orçamento</button>
     </nav>
     <div class="acts">
@@ -319,6 +373,13 @@ textarea.code{font:calc(12px*var(--fs,1))/1.45 var(--mono);min-height:150px;word
       <button class="ib helpb" id="bChat" aria-label="Tirar dúvidas" title="Tirar dúvidas" aria-controls="help" aria-expanded="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg></button>
       <a class="ib" id="bHelp" href="https://claude.ai/artifact/LoxsKJPStynxu7bheZw574" target="_blank" rel="noopener" aria-label="Guia: como usar" title="Guia: como usar"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6M12 17.2v.1"/></svg></a>
       <button class="ib" id="bExport" aria-label="Exportar" title="Exportar"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></button>
+      <button class="ib" id="bMore" aria-label="Mais opções" aria-haspopup="menu" aria-expanded="false" title="Mais opções"><svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/></svg></button>
+    </div>
+    <div class="more" id="moreMenu" role="menu" hidden>
+      <button role="menuitem" data-m="look"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17A8.5 8.5 0 0 0 12 3.5z" fill="currentColor"/></svg>Aparência</button>
+      <button role="menuitem" data-m="export"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Exportar</button>
+      <button role="menuitem" data-m="proj"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h6l2 2h8v11H4z"/></svg>Projetos</button>
+      <a role="menuitem" href="https://claude.ai/artifact/LoxsKJPStynxu7bheZw574" target="_blank" rel="noopener" data-m="guide"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6M12 17.2v.1"/></svg>Guia: como usar</a>
     </div>
   </header>
 
@@ -335,7 +396,9 @@ textarea.code{font:calc(12px*var(--fs,1))/1.45 var(--mono);min-height:150px;word
           <span id="hudBtns"></span>
         </div>
         <div class="ctx" id="ctx" hidden></div>
-        <div class="status">
+        <div class="status" id="statusBar">
+          <button class="chip ur only-s" id="bUndo2" aria-label="Desfazer"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+          <button class="chip ur only-s" id="bRedo2" aria-label="Refazer"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
           <span class="chip hide-m" id="coords">X 0 · Y 0</span>
           <button class="chip" id="tGrid" aria-pressed="true" title="Encaixar na grade (F9)">GRADE</button>
           <button class="chip" id="tOsnap" aria-pressed="true" title="Encaixar em pontos dos objetos (F3)">OBJ</button>
@@ -941,7 +1004,7 @@ function saveState(){
 function updSave(){
   const b=document.getElementById("bSave"); if(!b) return;
   const [k,t,title]=saveState(); b.dataset.s=k; b.title=title;
-  document.getElementById("saveTxt").textContent=t;
+  document.getElementById("saveTxt").textContent=k==="local"&&matchMedia("(max-width:760px)").matches?"Salvo":t;
   document.getElementById("saveIco").innerHTML=SAVE_ICO[k==="err"?"warn":k]||SAVE_ICO.local;
 }
 async function saveNow(){
@@ -1085,7 +1148,7 @@ let undoS=[], redoS=[];
 function pushUndo(){undoS.push(JSON.stringify(P.items)); if(undoS.length>120) undoS.shift(); redoS=[]; updUndo()}
 function doUndo(){if(!undoS.length)return; redoS.push(JSON.stringify(P.items)); P.items=JSON.parse(undoS.pop()); afterEdit(true)}
 function doRedo(){if(!redoS.length)return; undoS.push(JSON.stringify(P.items)); P.items=JSON.parse(redoS.pop()); afterEdit(true)}
-function updUndo(){$("#bUndo").disabled=!undoS.length; $("#bRedo").disabled=!redoS.length}
+function updUndo(){$("#bUndo").disabled=$("#bUndo2").disabled=!undoS.length; $("#bRedo").disabled=$("#bRedo2").disabled=!redoS.length}
 function afterEdit(clean){if(clean) sel=new Set([...sel].filter(id=>P.items.some(i=>i.id===id))); touch(); save(); draw(); renderPanel(); updUndo(); updCtx(); dirty3D=true}
 const byId=id=>P.items.find(i=>i.id===id);
 const selItems=()=>P.items.filter(i=>sel.has(i.id));
@@ -1480,9 +1543,18 @@ function updHUD(){
 }
 $("#hudBtns").addEventListener("click",e=>{const h=e.target.closest("[data-h]")?.dataset.h; if(h==="done") finishChain(); if(h==="close") closeChain(); if(h==="cancel") cancelTool()});
 function updCoords(w){$("#coords").textContent=`X ${fmtL(w[0])} · Y ${fmtL(-w[1])} ${P.unit}`}
+const isNarrow=()=>matchMedia("(max-width:900px)").matches;
+function modCard(m){
+  const u=P.unit, f=v=>num(toU(v),u==="mm"?0:1), n=(m.secs||[]).length;
+  return `<div class="ch"><div><b>${esc(m.name||"Móvel")}</b><small>${f(m.W)} × ${f(m.H)} × ${f(m.D)} ${u}${n?` · ${n} vão${n>1?"s":""}`:""}</small></div><button class="cx" data-c="close" aria-label="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="cdims">${[["W","Largura"],["H","Altura"],["D","Profund."]].map(([k,l])=>`<label>${l} (${u})<input class="in n" data-q="${k}" value="${toU(m[k])}" inputmode="decimal" enterkeyhint="done"></label>`).join("")}</div>
+  <div class="cacts"><button data-c="edit" class="pri"><svg class="i" viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z"/></svg>Editar</button><button data-c="3d"><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg>3D</button><button data-c="dup" class="io" aria-label="Duplicar" title="Duplicar"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button><button data-c="del" class="del io" aria-label="Excluir" title="Excluir"><svg class="i" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg></button></div>`;
+}
 function updCtx(){
-  const c=$("#ctx"); if(!sel.size||tool!=="select"){c.hidden=true; return}
+  const c=$("#ctx"); if(!sel.size||tool!=="select"){c.hidden=true; c.classList.remove("mcard"); return}
   const items=selItems(), one=items.length===1?items[0]:null, conv=!items.some(i=>i.t==="mod")&&!!convCandidates();
+  if(one&&one.t==="mod"&&isNarrow()){ if(c.contains(document.activeElement)&&document.activeElement.dataset.q) return; c.classList.add("mcard"); c.innerHTML=modCard(one); c.hidden=false; return }
+  c.classList.remove("mcard");
   c.innerHTML=`${conv?`<button data-c="conv" class="go"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M12 3v18M9.5 11v2M14.5 11v2"/></svg>Gerar móvel</button>`:""}<button data-c="edit" class="only-m"><svg class="i" viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z"/></svg>Editar</button>
     ${one&&one.t==="mod"?`<button data-c="3d"><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg>3D</button>`:""}
     <button data-c="dup"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Duplicar</button>
@@ -1491,7 +1563,13 @@ function updCtx(){
   c.hidden=false;
 }
 $("#ctx").addEventListener("click",e=>{const a=e.target.closest("[data-c]")?.dataset.c; if(!a) return;
+  if(a==="close"){sel.clear(); renderPanel(); updCtx(); draw(); return}
   if(a==="conv") return showConvert(); if(a==="edit") openPanel("props"); if(a==="del") delSel(); if(a==="dup") dupSel(); if(a==="rot") rotSel(); if(a==="3d") setView("3d")});
+$("#ctx").addEventListener("change",e=>{const k=e.target.dataset.q; if(!k) return; const one=selItems().length===1?selItems()[0]:null; if(!one||one.t!=="mod") return;
+  const cm=parseN(e.target.value)/U(); if(!(cm>=10)){e.target.value=toU(one[k]); return toast("Use uma medida a partir de 10 cm")}
+  pushUndo(); if(k==="H"){const bottom=one.y+one.H; one.H=cm; one.y=bottom-cm} else one[k]=cm; e.target.blur(); afterEdit()});
+$("#ctx").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.dataset.q){e.preventDefault(); e.target.blur()}});
+addEventListener("resize",()=>{updCtx(); updSave()});
 function delSel(){if(!sel.size) return; pushUndo(); P.items=P.items.filter(i=>!sel.has(i.id)); sel.clear(); afterEdit(); updCtx()}
 function dupSel(){if(!sel.size) return; pushUndo(); const d=P.grid*2, ns=new Set();
   for(const it of selItems()){const c=JSON.parse(JSON.stringify(it)); c.id=uid(); if(c.t==="mod"){c.x+=c.W; c.name=c.name+" (cópia)"} else translate(c,d,d); P.items.push(c); ns.add(c.id)}
@@ -2747,9 +2825,10 @@ function setView(v){
 }
 
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
-const APP_VER="v0.10 beta";
+const APP_VER="v0.11 beta";
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
+  {v:"v0.11 beta",items:["Tela mais fácil de usar com o dedo no celular: o nome do projeto aparece inteiro, o Salvar mostra o texto e Aparência, Exportar e o Guia ficam no botão ⋯ do topo.","Abas Desenho, 3D, Peças e corte e Orçamento mais altas e com letra maior.","GRADE, OBJ, ORTO e os outros ficam numa linha só embaixo do desenho, que desliza para o lado. Desfazer e refazer ficam no começo dessa linha, perto do dedo.","Ao tocar num móvel, sobe um cartão com o nome e as medidas: dá para mudar largura, altura e profundidade ali mesmo, ou tocar em Editar para ver tudo.","Cores, Fina/Média/Grossa e cm/mm do painel ficaram no tamanho do dedo, e no tablet a coluna de ferramentas não mostra mais as letras de atalho."]},
   {v:"v0.10 beta",items:["Nome novo: o Croqui 3D agora se chama AutoMarcen. Seus projetos salvos, o seu WhatsApp e as suas preferências continuam como estavam."]},
   {v:"v0.9 beta",items:["Croqui por foto: em Móvel, tire uma foto do desenho no papel e o Claude monta o móvel com as medidas.","Falar ou escrever: em Móvel, diga “balcão de 147 por 60 com duas portas e três gavetas” e o móvel aparece pronto.","Cliente aprova pelo celular: com o seu WhatsApp no Orçamento, o PDF e o novo 3D para o cliente vêm com os botões Aprovar e Pedir ajuste. A situação de cada orçamento aparece na lista de Projetos."]},
   {v:"v0.8 beta",items:["Porta sobre gavetas no mesmo vão e portas de correr (2 ou 3 folhas). No vão, escolha o tipo em Editar. Há também o modelo Roupeiro de correr.","Novos móveis prontos: balcão gaveta+porta, cômoda, escrivaninha e os conjuntos Cozinha completa (com torre quente) e Painel de TV.","Plano de corte melhor: respeita o veio do MDF, testa várias arrumações e mostra as sobras aproveitáveis em verde.","Furação na aba Peças e corte: furos de dobradiça em cada porta, linha das corrediças e padrão de cavilhas.","Puxador à escolha (barra, botão, perfil, cava ou toque) e 8 novas cores de MDF; as madeiradas aparecem com veio no 3D.","Modo escuro e letras maiores: toque no botão de meia-lua no topo."]},
@@ -2800,7 +2879,7 @@ const KB=[
  {id:"medir",q:"Como meço uma distância?",k:"medir distancia regua conferir tamanho",
   a:"Toque em **Medir** e toque nos dois pontos. A medida aparece na tela com a distância e as diferenças na horizontal e na vertical. Nada é desenhado."},
  {id:"apagar",q:"Como apago ou desfaço algo?",k:"apagar excluir deletar desfazer refazer errei voltar remover borracha",
-  a:"- **Desfazer** e **Refazer**: as setas curvas no topo.\n- **Apagar**: toque na ferramenta e toque ou arraste sobre o que quer apagar.\n- Ou selecione o objeto e toque em **Excluir** na barra que aparece embaixo.\nDepois de apagar, toque em **Selecionar** para voltar a mexer nos objetos."},
+  a:"- **Desfazer** e **Refazer**: as setas curvas no topo. No celular, ficam no começo da linha de botões embaixo do desenho.\n- **Apagar**: toque na ferramenta e toque ou arraste sobre o que quer apagar.\n- Ou selecione o objeto e toque em **Excluir** na barra que aparece embaixo.\nDepois de apagar, toque em **Selecionar** para voltar a mexer nos objetos."},
  {id:"selecionar",q:"Como seleciono e movo objetos?",k:"selecionar mover arrastar varios selecao area duplicar girar pegar",
   a:"Toque em **Selecionar** e toque perto da linha ou do móvel. Arraste para mover. Para pegar vários, arraste num espaço vazio: da esquerda para a direita pega o que está todo dentro, e da direita para a esquerda pega o que a área encostar. Com algo selecionado aparecem **Duplicar**, **Girar** e **Excluir**."},
  {id:"encaixe",q:"O que são GRADE, OBJ e ORTO?",k:"grade obj orto encaixe snap grudar ortogonal quadrado escala 5cm",
@@ -2836,7 +2915,7 @@ const KB=[
  {id:"voz",q:"Dá para ditar o móvel por voz?",k:"voz falar ditar ditado microfone audio escrever descrever frase",go:"inserir",
   a:"Sim. Toque em **Móvel** e depois em **Falar ou escrever**. Toque em **Falar** (ou use o microfone do teclado do celular) e diga, por exemplo: “balcão de 147 por 60 com duas portas e três gavetas” ou “aéreo de 120 por 70 a 150 do chão com duas portas”. Confira o que foi entendido e toque em **Inserir no projeto**. Frases simples funcionam até sem internet."},
  {id:"exportar",q:"Quais formatos posso exportar?",k:"exportar baixar download dxf cad svg csv png imagem json arquivo zip",go:"exportar",
-  a:"Toque na seta de **Exportar**, no topo:\n- **Orçamento em PDF**: proposta para o cliente.\n- **Imagem da prancha**: desenho cotado para WhatsApp.\n- **Desenho CAD (DXF)**: vem dentro de um .zip, descompacte antes.\n- **Vetor (SVG)**: programas de desenho vetorial e navegador.\n- **Lista de peças (CSV)**: planilhas e otimizadores de corte.\n- **Projeto (.json)** e **Código do projeto**: cópia de segurança.\nCada download pede uma confirmação."},
+  a:"Toque na seta de **Exportar**, no topo (no celular, toque em **⋯** e depois em **Exportar**):\n- **Orçamento em PDF**: proposta para o cliente.\n- **Imagem da prancha**: desenho cotado para WhatsApp.\n- **Desenho CAD (DXF)**: vem dentro de um .zip, descompacte antes.\n- **Vetor (SVG)**: programas de desenho vetorial e navegador.\n- **Lista de peças (CSV)**: planilhas e otimizadores de corte.\n- **Projeto (.json)** e **Código do projeto**: cópia de segurança.\nCada download pede uma confirmação."},
  {id:"salvar",q:"Meu projeto está salvo?",k:"salvar salvo salvando nuvem verde disquete perder guardar",
   a:"O projeto salva sozinho a cada mudança. O botão no topo mostra o estado:\n- **Nuvem verde, Salvo**: (versão do claude.ai) salvo na conta Claude do dono do link, aparece em todos os aparelhos.\n- **Salvo no aparelho**: salvo só neste aparelho. Na versão instalada é sempre assim; para levar a outro aparelho, use **Exportar → Projeto (.json)** e depois **Projetos → Importar**.\n- **Salvando…**: espere um instante.\n- **Não salvo** ou **Não salvou** (vermelho): veja a resposta sobre “Não salvo”.\nUm toque no botão salva na hora."},
  {id:"naosalvo",q:"Apareceu “Não salvo” em vermelho. O que faço?",k:"nao salvo vermelho anonimo bloqueado perdi sumiu nao salvou erro",
@@ -2858,9 +2937,9 @@ const KB=[
  {id:"offline",q:"Funciona sem internet?",k:"sem internet offline sinal conexao caiu obra desconectado wifi dados",
   a:"Sim, na versão instalada (o app do AutoMarcen na tela inicial): depois de aberta uma vez com internet, ela abre e funciona sem sinal, e o projeto fica salvo no aparelho. Na versão do claude.ai, para **abrir** o link é preciso internet. Com a ferramenta já aberta, se a internet cair, dá para continuar desenhando, ver o 3D, as peças e o orçamento. O botão de salvar mostra **Sem internet** e o projeto fica salvo no aparelho; quando a conexão volta, ele vai sozinho para a sua conta.\nDica para a obra: abra a ferramenta antes de sair, ainda com sinal, espere uns segundos e não feche a aba. Sem internet não funcionam o chat com o Claude (ele responde pelo guia), o link do guia e, possivelmente, os downloads."},
  {id:"aparencia",q:"Como deixo a tela escura ou as letras maiores?",k:"modo escuro tema claro noite letra maior grande tamanho fonte ler enxergar vista",
-  a:"Toque no botão de meia-lua no topo (**Aparência**). Em **Tema**, escolha Automático, Claro ou Escuro. Em **Tamanho das letras**, escolha Normal, Grande ou Maior. Fica guardado neste aparelho."},
+  a:"Toque no botão de meia-lua no topo (**Aparência**). No celular, ele fica dentro do botão **⋯**. Em **Tema**, escolha Automático, Claro ou Escuro. Em **Tamanho das letras**, escolha Normal, Grande ou Maior. Fica guardado neste aparelho."},
  {id:"tablet",q:"Dicas para usar no tablet",k:"tablet dedo toque dicas celular tela pequena barra ferramentas",
-  a:"- A ferramenta escolhida continua ativa até você trocar. Depois de desenhar ou apagar, toque em **Selecionar**.\n- Para selecionar, toque perto da linha.\n- Em telas pequenas, deslize a barra de ferramentas para o lado para ver todas.\n- **PAINEL** abre as medidas do que está selecionado."}
+  a:"- A ferramenta escolhida continua ativa até você trocar. Depois de desenhar ou apagar, toque em **Selecionar**.\n- Para selecionar, toque perto da linha.\n- Em telas pequenas, deslize a barra de ferramentas para o lado para ver todas.\n- Ao tocar num móvel, sobe um cartão com as medidas. Mude largura, altura e profundidade ali, ou toque em **Editar** para ver tudo.\n- A linha com GRADE, OBJ e ORTO também desliza para o lado. **PAINEL**, no fim dela, abre as cores, a espessura e as camadas."}
 ];
 const SUGS=["comecar","gerar","interior","cliente","naosalvo"];
 const ACTS={inserir:["Inserir móvel",()=>{setView("draw"); showInsert()}],exportar:["Abrir Exportar",()=>showExport()],projetos:["Abrir Projetos",()=>showProjects()],
@@ -3003,6 +3082,13 @@ function showLook(){
   },"look");
 }
 $("#bLook").onclick=showLook;
+function closeMore(){$("#moreMenu").hidden=true; $("#bMore").setAttribute("aria-expanded","false")}
+$("#bMore").onclick=e=>{e.stopPropagation(); const m=$("#moreMenu"); m.hidden=!m.hidden; $("#bMore").setAttribute("aria-expanded",String(!m.hidden))};
+$("#moreMenu").addEventListener("click",e=>{const a=e.target.closest("[data-m]")?.dataset.m; if(!a) return; closeMore();
+  if(a==="look") showLook(); if(a==="export") showExport(); if(a==="proj") $("#bProj").click()});
+addEventListener("click",e=>{if(!$("#moreMenu").hidden&&!e.target.closest("#moreMenu,#bMore")) closeMore()});
+addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#moreMenu").hidden) closeMore()});
+$("#bUndo2").onclick=()=>doUndo(); $("#bRedo2").onclick=()=>doRedo();
 function onTheme(){readColors(); draw()}
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",onTheme);
 new MutationObserver(onTheme).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme","data-ui"]});
