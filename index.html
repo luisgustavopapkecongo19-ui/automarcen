@@ -1,8 +1,8 @@
 <!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Croqui 3D</title>
+<title>AutoMarcen</title>
 <meta name="theme-color" content="#15181d">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="description" content="Croqui 3D: projeto de marcenaria no celular e no tablet. Desenho, 3D, lista de peças, plano de corte e orçamento.">
+<meta name="description" content="AutoMarcen: projeto de marcenaria no celular e no tablet. Desenho, 3D, lista de peças, plano de corte e orçamento.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -303,7 +303,7 @@ textarea.code{font:calc(12px*var(--fs,1))/1.45 var(--mono);min-height:150px;word
 
 <div class="app">
   <header class="top">
-    <div class="brand" title="Croqui 3D" role="img" aria-label="Croqui 3D"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V4h16"/><path d="M8 20V8h12v12z"/><path d="M8 14h12M14 8v12"/></svg></div>
+    <div class="brand" title="AutoMarcen" role="img" aria-label="AutoMarcen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V4h16"/><path d="M8 20V8h12v12z"/><path d="M8 14h12M14 8v12"/></svg></div>
     <button class="proj" id="bProj" aria-label="Projetos"><span id="projName">Projeto</span><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="m6 9 6 6 6-6"/></svg></button>
     <nav class="views" role="tablist" aria-label="Modo">
       <button role="tab" data-view="draw" aria-selected="true">Desenho</button>
@@ -384,7 +384,7 @@ textarea.code{font:calc(12px*var(--fs,1))/1.45 var(--mono);min-height:150px;word
 <aside class="help" id="help" aria-label="Ajuda" aria-hidden="true">
   <div class="hhead">
     <div class="av"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg></div>
-    <div class="tt"><b>Tire suas dúvidas</b><small id="hMode">Pergunte como fazer qualquer coisa no Croqui 3D</small></div>
+    <div class="tt"><b>Tire suas dúvidas</b><small id="hMode">Pergunte como fazer qualquer coisa no AutoMarcen</small></div>
     <button class="ib" id="hReset" aria-label="Nova conversa" title="Nova conversa"><svg class="i" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v5h5"/></svg></button>
     <button class="ib" id="hClose" aria-label="Fechar ajuda"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </div>
@@ -2050,7 +2050,7 @@ function specResult(el,spec,note){
   $("[data-spins]",r).onclick=()=>insertSpec(spec);
 }
 async function showPhoto(){
-  if(!H.sample) return specDlg("Croqui por foto",`<p>A leitura de foto usa o Claude e só funciona na versão do Croqui 3D dentro do claude.ai. Nesta versão instalada ela fica desligada.</p><p class="note">Você pode descrever o móvel em <b>Falar ou escrever</b>, que funciona no aparelho, até sem internet.</p><div class="row"><button class="btn" data-x>Fechar</button><button class="btn pri" data-voice>Falar ou escrever</button></div>`,el=>{$("[data-x]",el).onclick=closeDlg; $("[data-voice]",el).onclick=showVoice});
+  if(!H.sample) return specDlg("Croqui por foto",`<p>A leitura de foto usa o Claude e só funciona na versão do AutoMarcen dentro do claude.ai. Nesta versão instalada ela fica desligada.</p><p class="note">Você pode descrever o móvel em <b>Falar ou escrever</b>, que funciona no aparelho, até sem internet.</p><div class="row"><button class="btn" data-x>Fechar</button><button class="btn pri" data-voice>Falar ou escrever</button></div>`,el=>{$("[data-x]",el).onclick=closeDlg; $("[data-voice]",el).onclick=showVoice});
   let caps=null; try{caps=H.sample&&H.sample.limits?await H.sample.limits():null}catch(_){}
   if(!online()) return specDlg("Croqui por foto",`<p>A leitura da foto precisa de internet. Sem sinal, use <b>Falar ou escrever</b>, que funciona no aparelho.</p><div class="row"><button class="btn" data-x>Fechar</button><button class="btn pri" data-voice>Falar ou escrever</button></div>`,el=>{$("[data-x]",el).onclick=closeDlg; $("[data-voice]",el).onclick=showVoice});
   if(!caps||!caps.images) return specDlg("Croqui por foto",`<p>A leitura de foto usa o Claude e precisa estar liberada para a sua conta. Nesta tela ela não está disponível.</p><p class="note">Você pode descrever o móvel em <b>Falar ou escrever</b>.</p><div class="row"><button class="btn" data-x>Fechar</button><button class="btn pri" data-voice>Falar ou escrever</button></div>`,el=>{$("[data-x]",el).onclick=closeDlg; $("[data-voice]",el).onclick=showVoice});
@@ -2119,7 +2119,7 @@ function showProjects(){
       <button class="ib" data-del="${p.id}" aria-label="Excluir" style="color:var(--danger)"><svg class="i" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg></button>
     </div>`).join("")}</div>
     <p>${SV.cloud==="on"?"Os projetos ficam salvos na sua conta Claude e aparecem em todos os aparelhos em que você abrir este link.":SV.local?"Os projetos ficam salvos neste aparelho, dentro deste navegador. Para levar para outro aparelho ou mandar para outra pessoa, use Exportar → Código do projeto.":"Este navegador não está guardando os projetos. Use Exportar → Código do projeto para não perder o trabalho."}</p>
-    <button class="note" data-news style="justify-self:center;font-family:var(--mono);text-decoration:underline;text-underline-offset:3px">Croqui 3D · ${APP_VER} · novidades</button>`,el=>{
+    <button class="note" data-news style="justify-self:center;font-family:var(--mono);text-decoration:underline;text-underline-offset:3px">AutoMarcen · ${APP_VER} · novidades</button>`,el=>{
     $("[data-new]",el).onclick=()=>{const p=newProject("Projeto "+(store.projects.length+1)); store.projects.push(p); SV.dirty.add(p.id); switchTo(p); closeDlg(); askRename(p)};
     $("[data-imp]",el).onclick=showImport;
     $("[data-news]",el).onclick=()=>showNews(null);
@@ -2747,9 +2747,10 @@ function setView(v){
 }
 
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
-const APP_VER="v0.9.1 beta";
+const APP_VER="v0.10 beta";
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
+  {v:"v0.10 beta",items:["Nome novo: o Croqui 3D agora se chama AutoMarcen. Seus projetos salvos, o seu WhatsApp e as suas preferências continuam como estavam."]},
   {v:"v0.9 beta",items:["Croqui por foto: em Móvel, tire uma foto do desenho no papel e o Claude monta o móvel com as medidas.","Falar ou escrever: em Móvel, diga “balcão de 147 por 60 com duas portas e três gavetas” e o móvel aparece pronto.","Cliente aprova pelo celular: com o seu WhatsApp no Orçamento, o PDF e o novo 3D para o cliente vêm com os botões Aprovar e Pedir ajuste. A situação de cada orçamento aparece na lista de Projetos."]},
   {v:"v0.8 beta",items:["Porta sobre gavetas no mesmo vão e portas de correr (2 ou 3 folhas). No vão, escolha o tipo em Editar. Há também o modelo Roupeiro de correr.","Novos móveis prontos: balcão gaveta+porta, cômoda, escrivaninha e os conjuntos Cozinha completa (com torre quente) e Painel de TV.","Plano de corte melhor: respeita o veio do MDF, testa várias arrumações e mostra as sobras aproveitáveis em verde.","Furação na aba Peças e corte: furos de dobradiça em cada porta, linha das corrediças e padrão de cavilhas.","Puxador à escolha (barra, botão, perfil, cava ou toque) e 8 novas cores de MDF; as madeiradas aparecem com veio no 3D.","Modo escuro e letras maiores: toque no botão de meia-lua no topo."]},
   {v:"v0.7 beta",items:["Se a internet cair com a ferramenta aberta, dá para continuar desenhando, ver o 3D, as peças e o orçamento. O botão mostra “Sem internet” e o projeto fica salvo no aparelho; quando a conexão volta, ele vai sozinho para a sua conta.","Sem internet, o chat de ajuda responde com o guia guardado na ferramenta."]},
@@ -2759,7 +2760,7 @@ const CHANGES=[
 const SEEN_KEY="croqui3d-versao-vista";
 function showNews(since){
   const idx=since?CHANGES.findIndex(c=>c.v===since):-1, list=idx>0?CHANGES.slice(0,idx):idx===0?CHANGES.slice(0,1):CHANGES.slice(0,2);
-  dlg(`<h2>Novidades do Croqui 3D</h2><p>Versão ${esc(APP_VER)}</p>
+  dlg(`<h2>Novidades do AutoMarcen</h2><p>Versão ${esc(APP_VER)}</p>
     ${list.map(c=>`<div class="grp"><span class="lb">${esc(c.v)}</span><ul class="steps" style="color:var(--fg)">${c.items.map(t=>`<li>${esc(t)}</li>`).join("")}</ul></div>`).join("")}
     <div class="row act"><button class="btn ghost" data-chat>Tirar dúvidas</button><button class="btn pri" data-ok>Entendi</button></div>`,el=>{
     $("[data-ok]",el).onclick=closeDlg; $("[data-chat]",el).onclick=()=>{closeDlg(); openHelp()};
@@ -2776,7 +2777,7 @@ function checkNews(){
   setTimeout(()=>tryShow(0),900);
 }
 const GUIDE_URL="https://claude.ai/artifact/LoxsKJPStynxu7bheZw574";
-/* base de conhecimento: o conteúdo do Guia do Croqui 3D, em perguntas. Serve de fonte para o Claude e para a busca sem internet */
+/* base de conhecimento: o conteúdo do Guia do AutoMarcen, em perguntas. Serve de fonte para o Claude e para a busca sem internet */
 const KB=[
  {id:"comecar",q:"Por onde eu começo?",k:"comecar inicio primeiro projeto novo criar usar ferramenta como funciona",go:"projetos",
   a:"Há dois jeitos de fazer um móvel:\n1. **Móvel pronto**: toque em **Móvel** na barra de ferramentas, escolha o modelo e digite as medidas.\n2. **Desenhar e gerar**: desenhe a frente do móvel com **Retângulo** e **Linha**, selecione o contorno e toque em **Gerar móvel**.\nPara um projeto novo, toque no nome do projeto no topo e depois em **+ Novo projeto**. Linhas soltas ficam só no desenho: para ter 3D, peças e orçamento, o desenho precisa virar móvel."},
@@ -2851,11 +2852,11 @@ const KB=[
  {id:"limites",q:"Dá para fazer porta em cima de gaveta ou porta de correr?",k:"porta em cima de gaveta sobre correr deslizante folhas trilho",
   a:"Sim. Selecione o móvel, toque em **Editar** e, no vão, troque o tipo:\n- **Porta sobre gavetas**: o último campo é a quantidade de gavetas, que ficam embaixo. Em **Altura das gavetas** você define a altura do bloco (vazio = automático) e em **Folhas da porta** escolhe 1 ou 2.\n- **Portas de correr**: escolha 2 ou 3 folhas. O orçamento soma o kit de porta de correr por folha. No 3D, **Abrir portas e gavetas** desliza as folhas.\nHá também o modelo pronto **Roupeiro de correr** em **Móvel**."},
  {id:"app",q:"Como abro como aplicativo no celular?",k:"aplicativo app tela inicial instalar atalho icone chrome android",
-  a:"No Chrome, toque em **⋮** e depois em **Adicionar à tela inicial**. O Croqui 3D passa a abrir como um aplicativo."},
+  a:"No Chrome, toque em **⋮** e depois em **Adicionar à tela inicial**. O AutoMarcen passa a abrir como um aplicativo."},
  {id:"novidades",q:"O que mudou na última atualização?",k:"novidades atualizacao versao mudou novo novidade lancamento",
-  a:"Depois de cada atualização aparece uma vez a janela **Novidades do Croqui 3D**. Para ver de novo, toque no nome do projeto no topo e, no fim da lista, toque na versão (**Croqui 3D · v0.6 beta · novidades**).\nNa v0.6 entrou esse aviso de novidades. Na v0.5 entraram o chat de ajuda e a abertura mais rápida."},
+  a:"Depois de cada atualização aparece uma vez a janela **Novidades do AutoMarcen**. Para ver de novo, toque no nome do projeto no topo e, no fim da lista, toque na versão (**AutoMarcen · v0.6 beta · novidades**).\nNa v0.6 entrou esse aviso de novidades. Na v0.5 entraram o chat de ajuda e a abertura mais rápida."},
  {id:"offline",q:"Funciona sem internet?",k:"sem internet offline sinal conexao caiu obra desconectado wifi dados",
-  a:"Sim, na versão instalada (o app do Croqui 3D na tela inicial): depois de aberta uma vez com internet, ela abre e funciona sem sinal, e o projeto fica salvo no aparelho. Na versão do claude.ai, para **abrir** o link é preciso internet. Com a ferramenta já aberta, se a internet cair, dá para continuar desenhando, ver o 3D, as peças e o orçamento. O botão de salvar mostra **Sem internet** e o projeto fica salvo no aparelho; quando a conexão volta, ele vai sozinho para a sua conta.\nDica para a obra: abra a ferramenta antes de sair, ainda com sinal, espere uns segundos e não feche a aba. Sem internet não funcionam o chat com o Claude (ele responde pelo guia), o link do guia e, possivelmente, os downloads."},
+  a:"Sim, na versão instalada (o app do AutoMarcen na tela inicial): depois de aberta uma vez com internet, ela abre e funciona sem sinal, e o projeto fica salvo no aparelho. Na versão do claude.ai, para **abrir** o link é preciso internet. Com a ferramenta já aberta, se a internet cair, dá para continuar desenhando, ver o 3D, as peças e o orçamento. O botão de salvar mostra **Sem internet** e o projeto fica salvo no aparelho; quando a conexão volta, ele vai sozinho para a sua conta.\nDica para a obra: abra a ferramenta antes de sair, ainda com sinal, espere uns segundos e não feche a aba. Sem internet não funcionam o chat com o Claude (ele responde pelo guia), o link do guia e, possivelmente, os downloads."},
  {id:"aparencia",q:"Como deixo a tela escura ou as letras maiores?",k:"modo escuro tema claro noite letra maior grande tamanho fonte ler enxergar vista",
   a:"Toque no botão de meia-lua no topo (**Aparência**). Em **Tema**, escolha Automático, Claro ou Escuro. Em **Tamanho das letras**, escolha Normal, Grande ou Maior. Fica guardado neste aparelho."},
  {id:"tablet",q:"Dicas para usar no tablet",k:"tablet dedo toque dicas celular tela pequena barra ferramentas",
@@ -2897,27 +2898,27 @@ function appContext(){
 }
 function rulesTurn(){
   const guide=KB.map(e=>`### ${e.q}\n${e.a}`).join("\n\n");
-  return `Você é o assistente de ajuda dentro do Croqui 3D (${APP_VER}), uma ferramenta web de projeto de marcenaria feita para marceneiros: desenho técnico com cotas, móveis paramétricos, 3D, lista de peças, plano de corte e orçamento. Ela roda no celular, no tablet e no computador.
+  return `Você é o assistente de ajuda dentro do AutoMarcen (${APP_VER}), uma ferramenta web de projeto de marcenaria feita para marceneiros: desenho técnico com cotas, móveis paramétricos, 3D, lista de peças, plano de corte e orçamento. Ela roda no celular, no tablet e no computador.
 
 Como responder:
 - Português do Brasil simples, como um colega de oficina explicando. Frases curtas. No máximo uns 120 palavras.
 - Para ensinar, use passos numerados (1. 2. 3.). Escreva nomes de botões e abas em **negrito**, exatamente como aparecem.
 - Use só o que está no GUIA abaixo e o ESTADO ATUAL. Não invente botões, menus ou funções. Se a ferramenta não faz algo, diga que ainda não faz e dê a alternativa do guia, se houver.
 - Dúvidas de marcenaria em geral (medidas comuns, ferragens, MDF) podem ser respondidas com conhecimento geral, curto, ligando de volta ao que fazer na ferramenta.
-- Se a pergunta não tiver relação com marcenaria nem com a ferramenta, diga com gentileza que só ajuda com o Croqui 3D.
+- Se a pergunta não tiver relação com marcenaria nem com a ferramenta, diga com gentileza que só ajuda com o AutoMarcen.
 - Não cite nomes de outros programas ou marcas de software (de desenho, CAD, planilha ou plano de corte). Fale de forma genérica, por exemplo "programa de CAD" ou "planilha".
 - Quando ajudar, termine com UMA linha contendo só uma destas marcas para mostrar um botão de atalho: [abrir:inserir] [abrir:exportar] [abrir:projetos] [abrir:3d] [abrir:pecas] [abrir:orcamento] [abrir:guia]. Não explique a marca.
 
 ESTADO ATUAL DA TELA DO USUÁRIO:
 ${appContext()}
 
-GUIA DO CROQUI 3D:
+GUIA DO AUTOMARCEN:
 ${guide}`;
 }
 const H={open:false,turns:[],busy:false,ctl:null,sample:null,mode:"try"}; // mode: try | ai | local
 const hLog=$("#hLog"), hIn=$("#hIn");
 (async()=>{try{H.sample=window.claude&&window.claude.use?await window.claude.use("sample"):null}catch(_){H.sample=null} if(!H.sample) H.mode="local"; updMode()})();
-function updMode(){$("#hMode").textContent=H.mode==="ai"?"Respostas do Claude, com base no guia":H.mode==="local"?"Respostas do guia do Croqui 3D":"Pergunte como fazer qualquer coisa no Croqui 3D"}
+function updMode(){$("#hMode").textContent=H.mode==="ai"?"Respostas do Claude, com base no guia":H.mode==="local"?"Respostas do guia do AutoMarcen":"Pergunte como fazer qualquer coisa no AutoMarcen"}
 function openHelp(){
   H.open=true; const h=$("#help"); h.classList.add("open"); h.setAttribute("aria-hidden","false"); $("#bChat").setAttribute("aria-expanded","true");
   if(!hLog.children.length) helpWelcome();
@@ -2928,7 +2929,7 @@ let scrollQ=0; function scrollLog(){if(scrollQ) return; scrollQ=requestAnimation
 function addMsg(who,html){const d=document.createElement("div"); d.className="msgb "+who; d.innerHTML=html; hLog.appendChild(d); scrollLog(); return d}
 function sugHTML(ids){return `<div class="hsug">${ids.map(id=>{const e=KB.find(x=>x.id===id); return e?`<button class="pill" data-hq="${id}">${esc(e.q)}</button>`:""}).join("")}</div>`}
 function helpWelcome(){
-  addMsg("bot",mdLite("Olá! Eu explico como usar o Croqui 3D. Escreva sua dúvida do seu jeito, por exemplo “como faço um roupeiro com gavetas?”, ou toque numa pergunta:")+sugHTML(SUGS));
+  addMsg("bot",mdLite("Olá! Eu explico como usar o AutoMarcen. Escreva sua dúvida do seu jeito, por exemplo “como faço um roupeiro com gavetas?”, ou toque numa pergunta:")+sugHTML(SUGS));
 }
 function actsHTML(keys){keys=[...new Set(keys)].filter(k=>ACTS[k]); return keys.length?`<div class="hacts">${keys.map(k=>`<button class="btn sm" data-hgo="${k}">${ACTS[k][0]}</button>`).join("")}</div>`:""}
 function localAnswer(text,el,note){

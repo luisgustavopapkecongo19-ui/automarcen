@@ -5,7 +5,7 @@ h=hashlib.sha256()
 for f in files: h.update(f.encode()); h.update((P/f).read_bytes())
 ver=h.hexdigest()[:10]
 assets=["./"]+files
-sw=f'''/* Croqui 3D: guarda o app no aparelho para abrir sem internet. Gerado automaticamente; a versão muda quando qualquer arquivo muda. */
+sw=f'''/* AutoMarcen: guarda o app no aparelho para abrir sem internet. Gerado automaticamente; a versão muda quando qualquer arquivo muda. */
 const CACHE="croqui3d-{ver}";
 const ASSETS={json.dumps(assets)};
 self.addEventListener("install",e=>{{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS.map(u=>new Request(u,{{cache:"reload"}})))).then(()=>self.skipWaiting()))}});

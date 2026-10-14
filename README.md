@@ -1,13 +1,13 @@
-# Croqui 3D
+# AutoMarcen
 
 Ferramenta de projeto de marcenaria para celular, tablet e computador: desenho técnico com medidas, móveis paramétricos, 3D, lista de peças, plano de corte e orçamento em PDF.
 
-**Abrir:** https://luisgustavopapkecongo19-ui.github.io/croqui-3d/
+**Abrir:** https://luisgustavopapkecongo19-ui.github.io/automarcen/
 
 ## Instalar no Android
 1. Abra o link acima no Chrome.
 2. Toque em **Instalar app** no topo da ferramenta, ou no menu ⋮ do Chrome → **Instalar app** (ou **Adicionar à tela inicial**).
-3. O ícone do Croqui 3D aparece na tela inicial. Depois da primeira abertura com internet, ele abre e funciona sem sinal.
+3. O ícone do AutoMarcen aparece na tela inicial. Depois da primeira abertura com internet, ele abre e funciona sem sinal.
 
 ## Salvar e levar para outro aparelho
 Os projetos ficam salvos no próprio aparelho. Para levar a outro aparelho, use **Exportar → Projeto (.json)** e depois **Projetos → Importar**.
