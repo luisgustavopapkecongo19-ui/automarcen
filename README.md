@@ -1,6 +1,6 @@
 # Croqui 3D
 
-Ferramenta de projeto de marcenaria para celular, tablet e computador: desenho no estilo AutoCAD, móveis paramétricos, 3D, lista de peças, plano de corte e orçamento em PDF.
+Ferramenta de projeto de marcenaria para celular, tablet e computador: desenho técnico com medidas, móveis paramétricos, 3D, lista de peças, plano de corte e orçamento em PDF.
 
 **Abrir:** https://luisgustavopapkecongo19-ui.github.io/croqui-3d/
 
