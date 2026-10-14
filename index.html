@@ -2247,10 +2247,10 @@ function showExport(){
   const has=!!sceneBounds(), mods=P.items.some(i=>i.t==="mod"||(i.t==="rect"&&+i.dep>0&&+i.dep<=5));
   const opts=[
     ["png","Imagem da prancha","PNG com carimbo, para WhatsApp ou e-mail",has],
-    ["dxf","AutoCAD (DXF)","Arquivo .dxf em milímetros, por camada, dentro de um .zip",has],
-    ["svg","Vetor (SVG)","Abre no Illustrator, Inkscape, CorelDRAW e navegadores",has],
+    ["dxf","Desenho CAD (DXF)","Arquivo .dxf em milímetros, por camada, dentro de um .zip",has],
+    ["svg","Vetor (SVG)","Abre em programas de desenho vetorial e no navegador",has],
     ["pdf","Orçamento em PDF","Proposta para o cliente com desenho, 3D e valores",mods],
-    ["csv","Lista de peças (CSV)","Abre no Excel e em otimizadores de corte",mods],
+    ["csv","Lista de peças (CSV)","Abre em planilhas e em otimizadores de corte",mods],
     ["json","Projeto (.json)","Arquivo de backup para abrir em outro aparelho",true],
     ["code","Código do projeto","Texto para copiar e colar em outro aparelho ou mandar pelo WhatsApp",true]
   ];
@@ -2266,7 +2266,7 @@ async function doExport(k){
   const base=fileBase();
   if(k==="png"){const c=renderPNG(); if(!c) return; c.toBlob(async blob=>{ if(dl){if(await saveFile(base+".png",blob)) toast("Imagem salva")} else showImage(c.toDataURL("image/png"))},"image/png")}
   if(k==="svg"){const s=toSVG(); if(s&&await saveFile(base+".svg",s)) toast("SVG salvo")}
-  if(k==="dxf"){const s=toDXF(); const blob=new Blob(makeZipParts([{name:base+".dxf",data:s}]),{type:"application/zip"}); if(await saveFile(base+"-dxf.zip",blob)) toast("DXF salvo. Descompacte o .zip e abra no AutoCAD")}
+  if(k==="dxf"){const s=toDXF(); const blob=new Blob(makeZipParts([{name:base+".dxf",data:s}]),{type:"application/zip"}); if(await saveFile(base+"-dxf.zip",blob)) toast("DXF salvo. Descompacte o .zip e abra no seu programa de CAD")}
   if(k==="csv"){if(await saveFile(base+"-pecas.csv",partsCSV())) toast("Lista de peças salva")}
   if(k==="json"){ if(dlState==="none") return showCode(); const s=JSON.stringify({app:"marcenaria-cad",version:2,project:P},null,1); if(await saveFile(base+".json",s)) toast("Arquivo do projeto salvo")}
   if(k==="code") showCode();
@@ -2747,7 +2747,7 @@ function setView(v){
 }
 
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
-const APP_VER="v0.9 beta";
+const APP_VER="v0.9.1 beta";
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
   {v:"v0.9 beta",items:["Croqui por foto: em Móvel, tire uma foto do desenho no papel e o Claude monta o móvel com as medidas.","Falar ou escrever: em Móvel, diga “balcão de 147 por 60 com duas portas e três gavetas” e o móvel aparece pronto.","Cliente aprova pelo celular: com o seu WhatsApp no Orçamento, o PDF e o novo 3D para o cliente vêm com os botões Aprovar e Pedir ajuste. A situação de cada orçamento aparece na lista de Projetos."]},
@@ -2834,8 +2834,8 @@ const KB=[
   a:"Sim. Toque em **Móvel** e depois em **Croqui por foto**. Tire ou escolha a foto do desenho no papel, de frente, com boa luz e as medidas legíveis. O Claude lê o croqui e mostra o que entendeu. Confira e toque em **Inserir no projeto**. Precisa de internet e usa o seu uso do Claude, por isso só funciona na versão dentro do claude.ai; na versão instalada, use **Falar ou escrever**. Sempre confira as medidas antes de cortar."},
  {id:"voz",q:"Dá para ditar o móvel por voz?",k:"voz falar ditar ditado microfone audio escrever descrever frase",go:"inserir",
   a:"Sim. Toque em **Móvel** e depois em **Falar ou escrever**. Toque em **Falar** (ou use o microfone do teclado do celular) e diga, por exemplo: “balcão de 147 por 60 com duas portas e três gavetas” ou “aéreo de 120 por 70 a 150 do chão com duas portas”. Confira o que foi entendido e toque em **Inserir no projeto**. Frases simples funcionam até sem internet."},
- {id:"exportar",q:"Quais formatos posso exportar?",k:"exportar baixar download dxf autocad svg csv png imagem json arquivo zip",go:"exportar",
-  a:"Toque na seta de **Exportar**, no topo:\n- **Orçamento em PDF**: proposta para o cliente.\n- **Imagem da prancha**: desenho cotado para WhatsApp.\n- **AutoCAD (DXF)**: vem dentro de um .zip, descompacte antes.\n- **Vetor (SVG)**: Illustrator, Inkscape, CorelDRAW.\n- **Lista de peças (CSV)**: Excel e otimizadores de corte.\n- **Projeto (.json)** e **Código do projeto**: cópia de segurança.\nCada download pede uma confirmação."},
+ {id:"exportar",q:"Quais formatos posso exportar?",k:"exportar baixar download dxf cad svg csv png imagem json arquivo zip",go:"exportar",
+  a:"Toque na seta de **Exportar**, no topo:\n- **Orçamento em PDF**: proposta para o cliente.\n- **Imagem da prancha**: desenho cotado para WhatsApp.\n- **Desenho CAD (DXF)**: vem dentro de um .zip, descompacte antes.\n- **Vetor (SVG)**: programas de desenho vetorial e navegador.\n- **Lista de peças (CSV)**: planilhas e otimizadores de corte.\n- **Projeto (.json)** e **Código do projeto**: cópia de segurança.\nCada download pede uma confirmação."},
  {id:"salvar",q:"Meu projeto está salvo?",k:"salvar salvo salvando nuvem verde disquete perder guardar",
   a:"O projeto salva sozinho a cada mudança. O botão no topo mostra o estado:\n- **Nuvem verde, Salvo**: (versão do claude.ai) salvo na conta Claude do dono do link, aparece em todos os aparelhos.\n- **Salvo no aparelho**: salvo só neste aparelho. Na versão instalada é sempre assim; para levar a outro aparelho, use **Exportar → Projeto (.json)** e depois **Projetos → Importar**.\n- **Salvando…**: espere um instante.\n- **Não salvo** ou **Não salvou** (vermelho): veja a resposta sobre “Não salvo”.\nUm toque no botão salva na hora."},
  {id:"naosalvo",q:"Apareceu “Não salvo” em vermelho. O que faço?",k:"nao salvo vermelho anonimo bloqueado perdi sumiu nao salvou erro",
@@ -2847,7 +2847,7 @@ const KB=[
  {id:"unidade",q:"Como trabalho em milímetros?",k:"milimetro mm centimetro cm unidade medida",
   a:"Com nada selecionado, o painel mostra **Unidades e grade**. Escolha **Centímetros** ou **Milímetros**. A lista de corte sempre sai em milímetros."},
  {id:"camadas",q:"Para que servem as camadas?",k:"camada camadas ocultar esconder travar layer",
-  a:"No painel, a aba **Camadas** separa Estrutura, Móveis, Cotas, Anotações e Esboço. Toque no nome para desenhar nela, no olho para mostrar ou esconder e no cadeado para travar. **+ Nova** cria outra camada. No DXF, cada camada vira uma layer do AutoCAD."},
+  a:"No painel, a aba **Camadas** separa Estrutura, Móveis, Cotas, Anotações e Esboço. Toque no nome para desenhar nela, no olho para mostrar ou esconder e no cadeado para travar. **+ Nova** cria outra camada. No DXF, cada camada vira uma layer no programa de CAD."},
  {id:"limites",q:"Dá para fazer porta em cima de gaveta ou porta de correr?",k:"porta em cima de gaveta sobre correr deslizante folhas trilho",
   a:"Sim. Selecione o móvel, toque em **Editar** e, no vão, troque o tipo:\n- **Porta sobre gavetas**: o último campo é a quantidade de gavetas, que ficam embaixo. Em **Altura das gavetas** você define a altura do bloco (vazio = automático) e em **Folhas da porta** escolhe 1 ou 2.\n- **Portas de correr**: escolha 2 ou 3 folhas. O orçamento soma o kit de porta de correr por folha. No 3D, **Abrir portas e gavetas** desliza as folhas.\nHá também o modelo pronto **Roupeiro de correr** em **Móvel**."},
  {id:"app",q:"Como abro como aplicativo no celular?",k:"aplicativo app tela inicial instalar atalho icone chrome android",
@@ -2897,7 +2897,7 @@ function appContext(){
 }
 function rulesTurn(){
   const guide=KB.map(e=>`### ${e.q}\n${e.a}`).join("\n\n");
-  return `Você é o assistente de ajuda dentro do Croqui 3D (${APP_VER}), uma ferramenta web de projeto de marcenaria feita para marceneiros: desenho estilo AutoCAD, móveis paramétricos, 3D, lista de peças, plano de corte e orçamento. Ela roda no celular, no tablet e no computador.
+  return `Você é o assistente de ajuda dentro do Croqui 3D (${APP_VER}), uma ferramenta web de projeto de marcenaria feita para marceneiros: desenho técnico com cotas, móveis paramétricos, 3D, lista de peças, plano de corte e orçamento. Ela roda no celular, no tablet e no computador.
 
 Como responder:
 - Português do Brasil simples, como um colega de oficina explicando. Frases curtas. No máximo uns 120 palavras.
@@ -2905,6 +2905,7 @@ Como responder:
 - Use só o que está no GUIA abaixo e o ESTADO ATUAL. Não invente botões, menus ou funções. Se a ferramenta não faz algo, diga que ainda não faz e dê a alternativa do guia, se houver.
 - Dúvidas de marcenaria em geral (medidas comuns, ferragens, MDF) podem ser respondidas com conhecimento geral, curto, ligando de volta ao que fazer na ferramenta.
 - Se a pergunta não tiver relação com marcenaria nem com a ferramenta, diga com gentileza que só ajuda com o Croqui 3D.
+- Não cite nomes de outros programas ou marcas de software (de desenho, CAD, planilha ou plano de corte). Fale de forma genérica, por exemplo "programa de CAD" ou "planilha".
 - Quando ajudar, termine com UMA linha contendo só uma destas marcas para mostrar um botão de atalho: [abrir:inserir] [abrir:exportar] [abrir:projetos] [abrir:3d] [abrir:pecas] [abrir:orcamento] [abrir:guia]. Não explique a marca.
 
 ESTADO ATUAL DA TELA DO USUÁRIO:
