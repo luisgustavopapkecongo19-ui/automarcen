@@ -1,11 +1,40 @@
 rules_version = '2';
-// Regras do Firestore do AutoMarcen: cada pessoa só lê e grava a própria pasta users/{uid}.
+// Regras do Firestore do AutoMarcen.
+// Cada pessoa só lê e grava a própria pasta users/{uid}/projetos, e só documentos no formato que o app grava
+// (src/js/salvar.js: writeProject e writeTomb). Os relatórios e o Exportar tudo leem os projetos do aparelho,
+// então não precisam de mais nada no banco. Todo o resto fica fechado.
 // Para aplicar: console do Firebase → Firestore Database → Regras → colar tudo → Publicar.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{uid}/{doc=**} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+    function dono(uid) {
+      return request.auth != null && request.auth.uid == uid;
     }
+    function texto(v, max) {
+      return v is string && v.size() <= max;
+    }
+    // projeto (primeiro pedaço do JSON) ou projeto apagado
+    function projetoOk(d) {
+      return d.kind == "project" && texto(d.pid, 64) && d.updated is int && d.n is int && d.n >= 1 && d.n <= 50
+        && (
+          (d.keys().hasOnly(["kind", "pid", "name", "updated", "rev", "n", "s"])
+            && d.keys().hasAll(["s"]) && texto(d.s, 100000) && texto(d.get("name", ""), 300) && d.rev is int)
+          || (d.keys().hasOnly(["kind", "pid", "deleted", "updated", "n"]) && d.deleted == true)
+        );
+    }
+    // pedaço seguinte de um projeto grande
+    function pedacoOk(d) {
+      return d.keys().hasOnly(["kind", "pid", "rev", "i", "s"])
+        && d.kind == "chunk" && texto(d.pid, 64) && d.rev is int
+        && d.i is int && d.i >= 1 && d.i < 50 && texto(d.s, 100000);
+    }
+
+    match /users/{uid}/projetos/{doc} {
+      allow read, delete: if dono(uid);
+      allow create, update: if dono(uid) && doc.size() <= 120
+        && (projetoOk(request.resource.data) || pedacoOk(request.resource.data));
+    }
+
     // todo o resto fica fechado
     match /{path=**} {
       allow read, write: if false;
