@@ -1,7 +1,7 @@
 rules_version = '2';
 // Regras do Firestore do AutoMarcen.
 // Cada pessoa só lê e grava a própria pasta users/{uid}/projetos, e só documentos no formato que o app grava
-// (src/js/salvar.js: writeProject e writeTomb). Os relatórios e o Exportar tudo leem os projetos do aparelho,
+// (src/js/salvar.js: writeProject e writeTomb), e o próprio contador de IA do dia (users/{uid}/uso). Os relatórios e o Exportar tudo leem os projetos do aparelho,
 // então não precisam de mais nada no banco. Todo o resto fica fechado.
 // Para aplicar: console do Firebase → Firestore Database → Regras → colar tudo → Publicar.
 service cloud.firestore {
@@ -33,6 +33,20 @@ service cloud.firestore {
       allow read, delete: if dono(uid);
       allow create, update: if dono(uid) && doc.size() <= 120
         && (projetoOk(request.resource.data) || pedacoOk(request.resource.data));
+    }
+
+    // contador de pedidos de IA do dia (src/js/ia.js): um documento por dia (UTC, sem zero na frente: "2026-10-15", "2026-1-5"),
+    // só o dia de hoje, só sobe de 1 em 1 e para em 50 (IA_LIMITE)
+    function hoje() {
+      return string(request.time.year()) + "-" + string(request.time.month()) + "-" + string(request.time.day());
+    }
+    match /users/{uid}/uso/{dia} {
+      allow read: if dono(uid);
+      allow create: if dono(uid) && dia == hoje()
+        && request.resource.data.keys().hasOnly(["n"]) && request.resource.data.n == 1;
+      allow update: if dono(uid) && dia == hoje()
+        && request.resource.data.keys().hasOnly(["n"]) && request.resource.data.n == resource.data.n + 1
+        && request.resource.data.n <= 50;
     }
 
     // todo o resto fica fechado

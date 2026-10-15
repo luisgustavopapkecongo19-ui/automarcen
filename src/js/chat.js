@@ -1,7 +1,14 @@
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
+//#if app
+const APP_VER="v0.14 beta";
+//#else
 const APP_VER="v0.13 beta";
+//#endif
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
+//#if app
+  {v:"v0.14 beta",items:["Inteligência no app: com a conta entrada, o chat de ajuda responde com a IA do Google (Gemini), com base no guia do AutoMarcen.","Croqui por foto também no app: em Móvel, tire uma foto do desenho no papel e a IA monta o móvel com as medidas. Confira sempre antes de cortar.","Falar ou escrever entende frases com vários móveis quando há internet e a conta está entrada.","Cada conta tem até 50 pedidos de IA por dia. Sem conta ou sem internet, o chat responde pelo guia e Falar ou escrever entende as frases simples no aparelho."]},
+//#endif
   {v:"v0.13 beta",items:["Preços em branco: os projetos novos não vêm mais com preços de exemplo, porque cada região tem um valor. Preencha chapas e ferragens com os preços dos seus fornecedores na aba Orçamento.","O último preço que você digitou de cada item fica guardado neste aparelho, e os próximos projetos já começam com ele.","Enquanto faltar algum preço, o Orçamento mostra o aviso Faltam preços, marca os campos vazios e o total aparece como incompleto. Antes de gerar o PDF, copiar o resumo ou mandar o 3D para o cliente, o AutoMarcen avisa.","Os projetos que você já tinha continuam com os preços que estavam neles."]},
   {v:"v0.12 beta",items:["Clientes e relatórios: no botão ⋯, veja quanto foi orçado e vendido por cliente, por mês e quantas chapas de cada material você usou. Toque num cliente para ver os orçamentos dele e num projeto para abri-lo.","Exportar tudo: no mesmo lugar, um arquivo .json com todos os clientes, projetos, orçamentos e materiais, para guardar uma cópia de segurança.","No app instalado pelo site: entre na sua conta AutoMarcen (botão ⋯ → Entrar na conta), com Google ou e-mail, e seus projetos aparecem no celular, no tablet e no computador."]},
   {v:"v0.11 beta",items:["Tela mais fácil de usar com o dedo no celular: o nome do projeto aparece inteiro, o Salvar mostra o texto e Aparência, Exportar e o Guia ficam no botão ⋯ do topo.","Abas Desenho, 3D, Peças e corte e Orçamento mais altas e com letra maior.","GRADE, OBJ, ORTO e os outros ficam numa linha só embaixo do desenho, que desliza para o lado. Desfazer e refazer ficam no começo dessa linha, perto do dedo.","Ao tocar num móvel, sobe um cartão com o nome e as medidas: dá para mudar largura, altura e profundidade ali mesmo, ou tocar em Editar para ver tudo.","Cores, Fina/Média/Grossa e cm/mm do painel ficaram no tamanho do dedo, e no tablet a coluna de ferramentas não mostra mais as letras de atalho."]},
@@ -90,7 +97,7 @@ const KB=[
   a:"Na aba **Orçamento**:\n1. Em **Seu WhatsApp**, coloque o seu número. Ele fica guardado.\n2. **Gerar PDF** cria a proposta com 3D, desenho e valores, e com os botões **Aprovar pelo WhatsApp** e **Pedir ajuste**.\n3. **3D para o cliente** salva um arquivo que o cliente abre no celular para girar o móvel, abrir as portas e tocar em **Aprovar**.\n4. **Copiar resumo** copia um texto curto para colar no WhatsApp.\nQuando o cliente responder, marque a **Situação do orçamento** (Enviado, Aprovado ou Recusado). Ela aparece na lista de Projetos."},
  {id:"foto",q:"Dá para montar o móvel a partir de uma foto do croqui?",k:"foto croqui papel camera imagem tirar foto desenho a mao ler escanear",go:"inserir",
 //#if app
-  a:"Sim. Toque em **Móvel** e depois em **Croqui por foto**. Tire ou escolha a foto do desenho no papel, de frente, com boa luz e as medidas legíveis. O Claude lê o croqui e mostra o que entendeu. Confira e toque em **Inserir no projeto**. Precisa de internet e usa o seu uso do Claude, por isso só funciona na versão dentro do claude.ai; na versão instalada, use **Falar ou escrever**. Sempre confira as medidas antes de cortar."},
+  a:"Sim. Toque em **Móvel** e depois em **Croqui por foto**. Tire ou escolha a foto do desenho no papel, de frente, com boa luz e as medidas legíveis. A IA lê o croqui e mostra o que entendeu. Confira e toque em **Inserir no projeto**. Precisa de internet e de estar com a conta entrada (**⋯ → Entrar na conta**). Cada conta tem até 50 pedidos de IA por dia, somando chat, foto e frases. Sempre confira as medidas antes de cortar."},
 //#else
   a:"Sim. Toque em **Móvel** e depois em **Croqui por foto**. Tire ou escolha a foto do desenho no papel, de frente, com boa luz e as medidas legíveis. O Claude lê o croqui e mostra o que entendeu. Confira e toque em **Inserir no projeto**. Precisa de internet e usa o seu uso do Claude. Sempre confira as medidas antes de cortar."},
 //#endif
@@ -124,7 +131,7 @@ const KB=[
   a:"Depois de cada atualização aparece uma vez a janela **Novidades do AutoMarcen**. Para ver de novo, toque no nome do projeto no topo e, no fim da lista, toque na versão (**AutoMarcen · v0.6 beta · novidades**).\nNa v0.6 entrou esse aviso de novidades. Na v0.5 entraram o chat de ajuda e a abertura mais rápida."},
  {id:"offline",q:"Funciona sem internet?",k:"sem internet offline sinal conexao caiu obra desconectado wifi dados",
 //#if app
-  a:"Sim, na versão instalada (o app do AutoMarcen na tela inicial): depois de aberta uma vez com internet, ela abre e funciona sem sinal, e o projeto fica salvo no aparelho. Na versão do claude.ai, para **abrir** o link é preciso internet. Com a ferramenta já aberta, se a internet cair, dá para continuar desenhando, ver o 3D, as peças e o orçamento. O botão de salvar mostra **Sem internet** e o projeto fica salvo no aparelho; quando a conexão volta, ele vai sozinho para a sua conta.\nDica para a obra: abra a ferramenta antes de sair, ainda com sinal, espere uns segundos e não feche a aba. Sem internet não funcionam o chat com o Claude (ele responde pelo guia), o link do guia e, possivelmente, os downloads."},
+  a:"Sim, na versão instalada (o app do AutoMarcen na tela inicial): depois de aberta uma vez com internet, ela abre e funciona sem sinal, e o projeto fica salvo no aparelho. Na versão do claude.ai, para **abrir** o link é preciso internet. Com a ferramenta já aberta, se a internet cair, dá para continuar desenhando, ver o 3D, as peças e o orçamento. O botão de salvar mostra **Sem internet** e o projeto fica salvo no aparelho; quando a conexão volta, ele vai sozinho para a sua conta.\nDica para a obra: abra a ferramenta antes de sair, ainda com sinal, espere uns segundos e não feche a aba. Sem internet não funcionam a IA do chat (ele responde pelo guia), o Croqui por foto, o link do guia e, possivelmente, os downloads."},
 //#else
   a:"Em parte. Para **abrir** o link é preciso internet. Com a ferramenta já aberta, se a internet cair, dá para continuar desenhando, ver o 3D, as peças e o orçamento. O botão de salvar mostra **Sem internet** e o projeto fica salvo no aparelho; quando a conexão volta, ele vai sozinho para a sua conta.\nDica para a obra: abra a ferramenta antes de sair, ainda com sinal, espere uns segundos e não feche a aba. Sem internet não funcionam o chat com o Claude (ele responde pelo guia), o link do guia e, possivelmente, os downloads."},
 //#endif
@@ -188,8 +195,13 @@ ${guide}`;
 }
 const H={open:false,turns:[],busy:false,ctl:null,sample:null,mode:"try"}; // mode: try | ai | local
 const hLog=$("#hLog"), hIn=$("#hIn");
+//#if app
+H.sample=IA;
+function updMode(){$("#hMode").textContent=H.mode==="ai"?"Respostas da IA (Gemini), com base no guia":H.mode==="local"?"Respostas do guia do AutoMarcen":"Pergunte como fazer qualquer coisa no AutoMarcen"}
+//#else
 (async()=>{try{H.sample=window.claude&&window.claude.use?await window.claude.use("sample"):null}catch(_){H.sample=null} if(!H.sample) H.mode="local"; updMode()})();
 function updMode(){$("#hMode").textContent=H.mode==="ai"?"Respostas do Claude, com base no guia":H.mode==="local"?"Respostas do guia do AutoMarcen":"Pergunte como fazer qualquer coisa no AutoMarcen"}
+//#endif
 function openHelp(){
   H.open=true; const h=$("#help"); h.classList.add("open"); h.setAttribute("aria-hidden","false"); $("#bChat").setAttribute("aria-expanded","true");
   if(!hLog.children.length) helpWelcome();
@@ -236,7 +248,11 @@ async function ask(text){
     const c=e&&e.code;
     if(c==="cancelled"){ if(e.text) renderAI(e.text,el,true); else el.innerHTML=`<span class="think">Pergunta cancelada.</span>`; H.turns.pop() }
     else if(HARD.includes(c)){H.mode="local"; updMode(); localAnswer(text,el)}
+//#if app
+    else localAnswer(text,el,c==="login"?"Esta resposta veio do guia. Para respostas da IA, entre na conta: toque em ⋯ e depois em Entrar na conta.":c==="quota"?`Você já usou as ${IA_LIMITE} perguntas de IA de hoje. Esta resposta veio do guia; amanhã a IA volta.`:c==="rate_limited"?"A IA está ocupada agora. Esta resposta veio do guia; tente de novo daqui a pouco.":c==="network"&&!online()?"Sem internet: esta resposta veio do guia guardado na ferramenta.":"Sem resposta da IA agora. Esta resposta veio do guia.");
+//#else
     else localAnswer(text,el,c==="rate_limited"?"O Claude está ocupado agora. Esta resposta veio do guia; tente de novo daqui a pouco.":"Sem resposta do Claude agora. Esta resposta veio do guia.");
+//#endif
   }finally{H.busy=false; H.ctl=null; setBusy(false)}
 }
 function setBusy(b){const s=$("#hSend"); s.innerHTML=b?`<svg class="i" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>`:`<svg class="i" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg>`; s.setAttribute("aria-label",b?"Parar":"Enviar"); s.type=b?"button":"submit"}

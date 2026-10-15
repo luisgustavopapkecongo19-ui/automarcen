@@ -85,16 +85,19 @@ function specResult(el,spec,note){
 }
 async function showPhoto(){
 //#if app
-  if(!H.sample) return specDlg("Croqui por foto",`<p>A leitura de foto usa o Claude e só funciona na versão do AutoMarcen dentro do claude.ai. Nesta versão instalada ela fica desligada.</p><p class="note">Você pode descrever o móvel em <b>Falar ou escrever</b>, que funciona no aparelho, até sem internet.</p><div class="row"><button class="btn" data-x>Fechar</button><button class="btn pri" data-voice>Falar ou escrever</button></div>`,el=>{$("[data-x]",el).onclick=closeDlg; $("[data-voice]",el).onclick=showVoice});
+  if(!FB.user) return specDlg("Croqui por foto",`<p>A leitura de foto usa a IA e funciona com a conta entrada. Entre com o Google ou com e-mail e senha para usar.</p><p class="note">Sem conta, você pode descrever o móvel em <b>Falar ou escrever</b>, que funciona no aparelho, até sem internet.</p><div class="row"><button class="btn" data-voice>Falar ou escrever</button><button class="btn pri" data-in>Entrar na conta</button></div>`,el=>{$("[data-in]",el).onclick=showAcct; $("[data-voice]",el).onclick=showVoice});
+  const QUEM="A IA", USO="Usa um dos seus pedidos de IA do dia.";
+//#else
+  const QUEM="O Claude", USO="Usa o seu uso do Claude.";
 //#endif
   let caps=null; try{caps=H.sample&&H.sample.limits?await H.sample.limits():null}catch(_){}
   if(!online()) return specDlg("Croqui por foto",`<p>A leitura da foto precisa de internet. Sem sinal, use <b>Falar ou escrever</b>, que funciona no aparelho.</p><div class="row"><button class="btn" data-x>Fechar</button><button class="btn pri" data-voice>Falar ou escrever</button></div>`,el=>{$("[data-x]",el).onclick=closeDlg; $("[data-voice]",el).onclick=showVoice});
   if(!caps||!caps.images) return specDlg("Croqui por foto",`<p>A leitura de foto usa o Claude e precisa estar liberada para a sua conta. Nesta tela ela não está disponível.</p><p class="note">Você pode descrever o móvel em <b>Falar ou escrever</b>.</p><div class="row"><button class="btn" data-x>Fechar</button><button class="btn pri" data-voice>Falar ou escrever</button></div>`,el=>{$("[data-x]",el).onclick=closeDlg; $("[data-voice]",el).onclick=showVoice});
-  specDlg("Croqui por foto",`<p>Tire uma foto do desenho no papel (de frente, com boa luz e as medidas legíveis). O Claude lê o croqui e monta o móvel com as medidas.</p>
+  specDlg("Croqui por foto",`<p>Tire uma foto do desenho no papel (de frente, com boa luz e as medidas legíveis). ${QUEM} lê o croqui e monta o móvel com as medidas.</p>
     <label class="btn pri photo"><input type="file" id="spFile" accept="${esc((caps.images.mediaTypes||["image/jpeg","image/png"]).join(","))}" hidden>Escolher ou tirar foto</label>
     <img id="spImg" alt="Foto do croqui" hidden class="spimg">
     <div id="spRes"></div>
-    <p class="note">Usa o seu uso do Claude. Confira sempre as medidas antes de cortar.</p>
+    <p class="note">${USO} Confira sempre as medidas antes de cortar.</p>
     <div class="row"><button class="btn ghost" data-x>Fechar</button></div>`,el=>{
     $("[data-x]",el).onclick=closeDlg;
     $("#spFile",el).onchange=async e=>{
@@ -105,7 +108,7 @@ async function showPhoto(){
         const spec=await aiSpec(`A imagem é a foto de um croqui de marcenaria feito à mão (papel quadriculado ou liso), com medidas escritas. Identifique cada móvel desenhado, as medidas externas e a divisão em vãos (portas, gavetas, nichos), da esquerda para a direita. Se houver vista de frente e de lado, use a de lado para a profundidade.\n${SPEC_FORMAT}`,{images:[f],modelTier:"default"});
         if(openDlg&&openDlg.contains(r)) specResult(el,spec);
       }catch(err){
-        const c=err&&err.code; r.innerHTML=`<p class="warn">${c==="not_granted"?"A leitura foi recusada. Para usar, permita o uso do Claude quando ele pedir.":c==="image_rejected"?"Essa foto não pôde ser lida. Tente outra, em JPG ou PNG.":c==="rate_limited"?"Muitos pedidos agora. Tente de novo em instantes.":"Não consegui ler a foto agora. Tente de novo ou use Falar ou escrever."}</p>`;
+        const c=err&&err.code; r.innerHTML=`<p class="warn">${c==="not_granted"?"A leitura foi recusada. Para usar, permita o uso do Claude quando ele pedir.":c==="image_rejected"?"Essa foto não pôde ser lida. Tente outra, em JPG ou PNG.":c==="rate_limited"?"Muitos pedidos agora. Tente de novo em instantes.":c==="quota"?"Você já usou os pedidos de IA de hoje. Amanhã volta; enquanto isso, use Falar ou escrever.":c==="login"?"Entre na conta para usar a leitura de foto.":"Não consegui ler a foto agora. Tente de novo ou use Falar ou escrever."}</p>`;
       }
     };
   });
@@ -133,7 +136,7 @@ function showVoice(){
       const txt=$("#spTxt",el).value.trim(); if(!txt) return;
       const loc=parseSpeech(txt), r=$("#spRes",el), nt=txt.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""), kinds=(nt.match(/\b(balcao|aereo|armario|gaveteiro|roupeiro|estante|comoda|escrivaninha|guarda roupa|torre|painel|rack)\b/g)||[]).length, simple=loc&&loc.moveis[0].largura&&kinds<=1&&!/;/.test(nt);
 //#if app
-      if(simple||!H.sample||!online()){ if(loc) specResult(el,loc,!simple&&H.sample&&!online()?"Entendido no aparelho. Para frases com vários móveis, use com internet.":!simple&&!H.sample?"Entendido no aparelho. Se tiver mais de um móvel, descreva um de cada vez.":""); else specResult(el,{moveis:[]}); return }
+      if(simple||!FB.user||!online()){ if(loc) specResult(el,loc,!simple&&!online()?"Entendido no aparelho. Para frases com vários móveis, use com internet.":!simple&&!FB.user?"Entendido no aparelho. Se tiver mais de um móvel, descreva um de cada vez, ou entre na conta para a IA entender a frase toda.":""); else specResult(el,{moveis:[]}); return }
 //#else
       if(simple||!H.sample||!online()){ if(loc) specResult(el,loc,!simple&&(!H.sample||!online())?"Entendido no aparelho. Para frases com vários móveis, use com internet.":""); else specResult(el,{moveis:[]}); return }
 //#endif
