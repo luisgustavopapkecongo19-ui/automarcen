@@ -10,7 +10,15 @@ Ferramenta de projeto de marcenaria para celular, tablet e computador: desenho t
 3. O ícone do AutoMarcen aparece na tela inicial. Depois da primeira abertura com internet, ele abre e funciona sem sinal.
 
 ## Salvar e levar para outro aparelho
-Os projetos ficam salvos no próprio aparelho. Para levar a outro aparelho, use **Exportar → Projeto (.json)** e depois **Projetos → Importar**.
+Os projetos ficam salvos no próprio aparelho. Para abrir em todos os aparelhos, toque em **⋯ → Entrar na conta** (Google ou e-mail e senha): a partir daí cada projeto também vai para a nuvem e aparece onde você entrar com a mesma conta. Sem internet, o projeto fica no aparelho e sobe quando a conexão volta.
+
+Sem conta, dá para levar um projeto com **Exportar → Projeto (.json)** e depois **Projetos → Importar**.
+
+### Conta e nuvem (Firebase)
+- Projeto Firebase `automarcen`: Authentication (Google e E-mail/senha) e Firestore em `southamerica-east1`.
+- Cada pessoa grava só em `users/{uid}/projetos`; as regras do Firestore bloqueiam o resto.
+- A configuração do app web fica em `src/js/conta.js` (não é senha). O SDK do Firebase 10.14.1 fica em `vendor/firebase/`, para o app abrir sem internet.
+- Só a versão instalável usa o Firebase; a do claude.ai continua salvando na conta Claude.
 
 ## Código
 O código fica em `src/`, separado em partes. Mude sempre ali e depois rode:
@@ -32,7 +40,7 @@ Ele junta as partes e gera as duas versões:
 | `src/estilo/` | aparência: base, topo, desenho, painel, 3D, páginas, janelas, ajuda e ajustes de toque |
 | `src/js/nucleo/` | contas sem tela: geometria dos móveis, plano de corte, ZIP e DXF |
 | `src/js/desenho/` | prancheta 2D: pintar, toque e mouse, medidas, desfazer |
-| `src/js/projeto.js`, `salvar.js` | projetos e como eles são salvos |
+| `src/js/projeto.js`, `salvar.js`, `conta.js` | projetos, como eles são salvos e a conta na nuvem (Firebase) |
 | `src/js/painel.js`, `moveis.js` | painel do móvel e desenho virando móvel |
 | `src/js/foto-voz.js` | montar móvel por foto ou por frase |
 | `src/js/exportar.js`, `pecas-corte-orcamento.js`, `cliente.js` | arquivos, peças, corte, orçamento e envio ao cliente |
@@ -42,4 +50,4 @@ Ele junta as partes e gera as duas versões:
 As diferenças entre as versões ficam marcadas no próprio código, com `//#if app` … `//#else` … `//#endif` (`app` é a versão instalável; o resto é a do claude.ai). Uma futura versão para Windows (Tauri) entra como mais uma versão em `tools/build.py`.
 
 ## Arquivos publicados
-`vendor/` tem three.js r128 e jsPDF 2.5.1; `fonts/` tem Instrument Sans e IBM Plex Mono (licença OFL); `icons/` e `manifest.webmanifest` são do app instalável. O `build.py` também atualiza a lista e a versão do cache em `sw.js`.
+`vendor/` tem three.js r128, jsPDF 2.5.1 e Firebase 10.14.1; `fonts/` tem Instrument Sans e IBM Plex Mono (licença OFL); `icons/` e `manifest.webmanifest` são do app instalável. O `build.py` também atualiza a lista e a versão do cache em `sw.js`.
