@@ -839,18 +839,6 @@ function newProject(name){const ph=lsGet("croqui3d-whats")||"", mp=myPrices(), m
   if(mp){for(const k in mat) if(+mp.mat?.[k]>0) mat[k].price=+mp.mat[k]; for(const k in mp.budget||{}) if(k in budget&&+mp.budget[k]>0) budget[k]=+mp.budget[k]}
   return{id:uid(),name,grid:5,unit:"cm",textH:4,layers:LAYERS0.map(l=>({...l,visible:true,locked:false})),curLayer:"estrutura",items:[],mat,budget,sheet:{w:2750,h:1840,kerf:4,trim:10},updated:Date.now()}}
 function makeModule(tplKey,over){const t=JSON.parse(JSON.stringify(TPL[tplKey]||TPL.livre));const m=Object.assign({id:uid(),t:"mod",layer:"moveis",col:"layer",lw:1.2,x:0,y:0,dims:true},t,over||{});m.y=-((+m.elev||0)+m.H);delete m.elev;return m}
-function sampleProject(){
-  const p=newProject("Exemplo: cozinha");
-  const old=P; P=p;
-  const b=makeModule("balcao",{name:"Balcão pia",W:147,H:85,D:60,secs:[{w:45,type:"gavetas",n:4},{w:0,type:"porta2",n:1},{w:40,type:"porta",n:1,hinge:"D"}]});
-  const a=makeModule("aereo",{name:"Aéreo",W:147,H:70,D:35,x:0,dims:false,secs:[{w:0,type:"porta",n:1},{w:0,type:"porta2",n:1},{w:0,type:"porta",n:1}]});
-  a.y=-(150+70);
-  p.items.push(b,a);
-  p.items.push({id:uid(),t:"dim",layer:"cotas",col:"layer",lw:1,a:[147,-85],b:[147,-150],off:14,h:4});
-  p.items.push({id:uid(),t:"text",layer:"anot",col:"layer",lw:1,p:[0,-246],s:"Cozinha — parede da pia",h:6});
-  p.items.push({id:uid(),t:"line",layer:"estrutura",col:"layer",lw:2.4,a:[-20,0],b:[180,0]});
-  P=old; return p;
-}
 function ensure(p){
   const d=newProject(p.name||"Projeto");
   for(const k of ["grid","unit","textH","curLayer","sheet"]) if(p[k]===undefined) p[k]=d[k];
@@ -886,8 +874,9 @@ function load(){
   if(s&&Array.isArray(s.projects)&&s.projects.length) store=s;
   else{
     const raw=lsGet(OLD_KEY), old=raw?migrateOld(raw):[];
-    const smp=sampleProject(); smp.sample=true;
-    store={current:null,projects:[smp,...old.filter(p=>p.items.length)]};
+    // quem chega pela primeira vez começa com um projeto vazio; os modelos ficam em Móvel
+    const kept=old.filter(p=>p.items.length), novo=newProject("Projeto 1"); novo.sample=true;
+    store={current:null,projects:kept.length?kept:[novo]};
   }
   store.projects.forEach(ensure);
   P=store.projects.find(p=>p.id===store.current)||store.projects[0]; store.current=P.id;
@@ -1246,6 +1235,11 @@ function drawNow(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   renderScene(ctx,view.s,view.x,view.y,CW,CH,liveOpts());
   const o=liveOpts(), acc=C.acc;
+  if(!P.items.length&&!st){ // projeto vazio: uma dica discreta no meio da tela
+    const lines=["Projeto vazio","Toque em Móvel para pôr um móvel pronto","ou desenhe com Linha e Retângulo"];
+    ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillStyle=C.fg; ctx.globalAlpha=.5;
+    lines.forEach((t,i)=>{ctx.font=`${i?400:600} ${i?13:15}px ${FONT}`; ctx.fillText(t,CW/2,CH/2-22+i*22)}); ctx.globalAlpha=1;
+  }
   const pv=(pr)=>rp(ctx,pr,view.s,view.x,view.y,o,acc);
   // hover
   if(tool==="select"&&hoverId&&!sel.has(hoverId)){const it=byId(hoverId); if(it&&visible(it)){ctx.globalAlpha=.45; for(const pr of prims(it)) rp(ctx,pr,view.s,view.x,view.y,o,acc); ctx.globalAlpha=1}}
@@ -2963,9 +2957,10 @@ function setView(v){
 }
 
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
-const APP_VER="v0.13 beta";
+const APP_VER="v0.13.1 beta";
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
+  {v:"v0.13.1 beta",items:["Tela limpa para quem começa: o primeiro projeto abre vazio, sem móveis de exemplo. Os modelos prontos e os conjuntos continuam no botão Móvel.","Com o projeto vazio, o meio da tela mostra por onde começar.","Os projetos que você já tinha continuam como estavam."]},
   {v:"v0.13 beta",items:["Preços em branco: os projetos novos não vêm mais com preços de exemplo, porque cada região tem um valor. Preencha chapas e ferragens com os preços dos seus fornecedores na aba Orçamento.","O último preço que você digitou de cada item fica guardado neste aparelho, e os próximos projetos já começam com ele.","Enquanto faltar algum preço, o Orçamento mostra o aviso Faltam preços, marca os campos vazios e o total aparece como incompleto. Antes de gerar o PDF, copiar o resumo ou mandar o 3D para o cliente, o AutoMarcen avisa.","Os projetos que você já tinha continuam com os preços que estavam neles."]},
   {v:"v0.12 beta",items:["Clientes e relatórios: no botão ⋯, veja quanto foi orçado e vendido por cliente, por mês e quantas chapas de cada material você usou. Toque num cliente para ver os orçamentos dele e num projeto para abri-lo.","Exportar tudo: no mesmo lugar, um arquivo .json com todos os clientes, projetos, orçamentos e materiais, para guardar uma cópia de segurança.","No app instalado pelo site: entre na sua conta AutoMarcen (botão ⋯ → Entrar na conta), com Google ou e-mail, e seus projetos aparecem no celular, no tablet e no computador."]},
   {v:"v0.11 beta",items:["Tela mais fácil de usar com o dedo no celular: o nome do projeto aparece inteiro, o Salvar mostra o texto e Aparência, Exportar e o Guia ficam no botão ⋯ do topo.","Abas Desenho, 3D, Peças e corte e Orçamento mais altas e com letra maior.","GRADE, OBJ, ORTO e os outros ficam numa linha só embaixo do desenho, que desliza para o lado. Desfazer e refazer ficam no começo dessa linha, perto do dedo.","Ao tocar num móvel, sobe um cartão com o nome e as medidas: dá para mudar largura, altura e profundidade ali mesmo, ou tocar em Editar para ver tudo.","Cores, Fina/Média/Grossa e cm/mm do painel ficaram no tamanho do dedo, e no tablet a coluna de ferramentas não mostra mais as letras de atalho."]},
@@ -2998,8 +2993,8 @@ function checkNews(){
 const GUIDE_URL="https://claude.ai/artifact/LoxsKJPStynxu7bheZw574";
 /* base de conhecimento: o conteúdo do Guia do AutoMarcen, em perguntas. Serve de fonte para o Claude e para a busca sem internet */
 const KB=[
- {id:"comecar",q:"Por onde eu começo?",k:"comecar inicio primeiro projeto novo criar usar ferramenta como funciona",go:"projetos",
-  a:"Há dois jeitos de fazer um móvel:\n1. **Móvel pronto**: toque em **Móvel** na barra de ferramentas, escolha o modelo e digite as medidas.\n2. **Desenhar e gerar**: desenhe a frente do móvel com **Retângulo** e **Linha**, selecione o contorno e toque em **Gerar móvel**.\nPara um projeto novo, toque no nome do projeto no topo e depois em **+ Novo projeto**. Linhas soltas ficam só no desenho: para ter 3D, peças e orçamento, o desenho precisa virar móvel."},
+ {id:"comecar",q:"Por onde eu começo?",k:"comecar inicio primeiro projeto novo criar usar ferramenta como funciona vazio tela em branco limpa exemplo modelo",go:"projetos",
+  a:"O primeiro projeto começa vazio. Há dois jeitos de fazer um móvel:\n1. **Móvel pronto**: toque em **Móvel** na barra de ferramentas, escolha o modelo e digite as medidas.\n2. **Desenhar e gerar**: desenhe a frente do móvel com **Retângulo** e **Linha**, selecione o contorno e toque em **Gerar móvel**.\nPara um projeto novo, toque no nome do projeto no topo e depois em **+ Novo projeto**. Linhas soltas ficam só no desenho: para ter 3D, peças e orçamento, o desenho precisa virar móvel."},
  {id:"inserir",q:"Como insiro um móvel pronto?",k:"inserir modelo pronto balcao aereo gaveteiro armario roupeiro estante comoda escrivaninha cozinha completa painel tv rack torre quente modulo livre adicionar movel",go:"inserir",
   a:"1. Toque em **Móvel** na barra de ferramentas e escolha o modelo: balcão, aéreo, gaveteiro, armário, roupeiro, estante, balcão gaveta+porta, roupeiro de correr, cômoda, escrivaninha ou módulo livre.\n2. Digite largura, altura e profundidade em centímetros.\n3. Em **Altura do piso**, deixe 0 para móveis no chão. Num aéreo, use a distância do chão até a base dele, por exemplo 150.\n4. Toque em **Inserir**. O móvel aparece ao lado dos outros, já cotado.\nNo fim da lista há conjuntos prontos: **Cozinha completa** (balcão, aéreo e torre quente) e **Painel de TV** (rack e painel). Depois toque em cada móvel e em **Editar** para ajustar."},
  {id:"gerar",q:"Como transformo meu desenho em móvel 3D?",k:"gerar movel desenho transformar converter croqui virar 3d contorno desenhar armario",

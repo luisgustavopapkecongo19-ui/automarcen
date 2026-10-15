@@ -51,18 +51,6 @@ function newProject(name){const ph=lsGet("croqui3d-whats")||"", mp=myPrices(), m
   if(mp){for(const k in mat) if(+mp.mat?.[k]>0) mat[k].price=+mp.mat[k]; for(const k in mp.budget||{}) if(k in budget&&+mp.budget[k]>0) budget[k]=+mp.budget[k]}
   return{id:uid(),name,grid:5,unit:"cm",textH:4,layers:LAYERS0.map(l=>({...l,visible:true,locked:false})),curLayer:"estrutura",items:[],mat,budget,sheet:{w:2750,h:1840,kerf:4,trim:10},updated:Date.now()}}
 function makeModule(tplKey,over){const t=JSON.parse(JSON.stringify(TPL[tplKey]||TPL.livre));const m=Object.assign({id:uid(),t:"mod",layer:"moveis",col:"layer",lw:1.2,x:0,y:0,dims:true},t,over||{});m.y=-((+m.elev||0)+m.H);delete m.elev;return m}
-function sampleProject(){
-  const p=newProject("Exemplo: cozinha");
-  const old=P; P=p;
-  const b=makeModule("balcao",{name:"Balcão pia",W:147,H:85,D:60,secs:[{w:45,type:"gavetas",n:4},{w:0,type:"porta2",n:1},{w:40,type:"porta",n:1,hinge:"D"}]});
-  const a=makeModule("aereo",{name:"Aéreo",W:147,H:70,D:35,x:0,dims:false,secs:[{w:0,type:"porta",n:1},{w:0,type:"porta2",n:1},{w:0,type:"porta",n:1}]});
-  a.y=-(150+70);
-  p.items.push(b,a);
-  p.items.push({id:uid(),t:"dim",layer:"cotas",col:"layer",lw:1,a:[147,-85],b:[147,-150],off:14,h:4});
-  p.items.push({id:uid(),t:"text",layer:"anot",col:"layer",lw:1,p:[0,-246],s:"Cozinha — parede da pia",h:6});
-  p.items.push({id:uid(),t:"line",layer:"estrutura",col:"layer",lw:2.4,a:[-20,0],b:[180,0]});
-  P=old; return p;
-}
 function ensure(p){
   const d=newProject(p.name||"Projeto");
   for(const k of ["grid","unit","textH","curLayer","sheet"]) if(p[k]===undefined) p[k]=d[k];
@@ -98,8 +86,9 @@ function load(){
   if(s&&Array.isArray(s.projects)&&s.projects.length) store=s;
   else{
     const raw=lsGet(OLD_KEY), old=raw?migrateOld(raw):[];
-    const smp=sampleProject(); smp.sample=true;
-    store={current:null,projects:[smp,...old.filter(p=>p.items.length)]};
+    // quem chega pela primeira vez começa com um projeto vazio; os modelos ficam em Móvel
+    const kept=old.filter(p=>p.items.length), novo=newProject("Projeto 1"); novo.sample=true;
+    store={current:null,projects:kept.length?kept:[novo]};
   }
   store.projects.forEach(ensure);
   P=store.projects.find(p=>p.id===store.current)||store.projects[0]; store.current=P.id;

@@ -69,6 +69,11 @@ function drawNow(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   renderScene(ctx,view.s,view.x,view.y,CW,CH,liveOpts());
   const o=liveOpts(), acc=C.acc;
+  if(!P.items.length&&!st){ // projeto vazio: uma dica discreta no meio da tela
+    const lines=["Projeto vazio","Toque em Móvel para pôr um móvel pronto","ou desenhe com Linha e Retângulo"];
+    ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillStyle=C.fg; ctx.globalAlpha=.5;
+    lines.forEach((t,i)=>{ctx.font=`${i?400:600} ${i?13:15}px ${FONT}`; ctx.fillText(t,CW/2,CH/2-22+i*22)}); ctx.globalAlpha=1;
+  }
   const pv=(pr)=>rp(ctx,pr,view.s,view.x,view.y,o,acc);
   // hover
   if(tool==="select"&&hoverId&&!sel.has(hoverId)){const it=byId(hoverId); if(it&&visible(it)){ctx.globalAlpha=.45; for(const pr of prims(it)) rp(ctx,pr,view.s,view.x,view.y,o,acc); ctx.globalAlpha=1}}
