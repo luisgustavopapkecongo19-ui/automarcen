@@ -38,6 +38,10 @@ td.code{font:600 calc(12px*var(--fs,1)) var(--mono)}
 .qline{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:9px 0;border-bottom:1px solid var(--line)}
 .qline small{color:var(--muted);grid-column:1}
 .qline b{font:500 calc(14px*var(--fs,1)) var(--mono);grid-row:1/3;grid-column:2;align-self:center;font-variant-numeric:tabular-nums}
+.qmiss{display:grid;gap:2px;margin:6px 0 4px;padding:10px 12px;border-radius:10px;color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,transparent);font-size:calc(13px*var(--fs,1))}
+.qmiss span{color:var(--fg)}
+.qline.qzero b{color:var(--warn);font-family:inherit;font-weight:600}
+.in.need{border-color:var(--warn);box-shadow:0 0 0 2px color-mix(in srgb,var(--warn) 25%,transparent)}
 .qtotal{display:flex;justify-content:space-between;align-items:baseline;padding-top:12px}
 .qtotal b{font:600 calc(26px*var(--fs,1)) var(--mono);letter-spacing:-.02em;color:var(--accent);font-variant-numeric:tabular-nums}
 @media (max-width:600px){.mrow{grid-template-columns:1fr 1fr!important}.mrow>:first-child{grid-column:1/-1}}

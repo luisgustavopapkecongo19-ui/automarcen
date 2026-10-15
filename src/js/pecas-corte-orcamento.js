@@ -98,24 +98,48 @@ document.addEventListener("click",e=>{const g=e.target.closest("[data-go]"); if(
 
 function quote(){
   const A=allParts(), plans=cutPlans(A), B=P.budget, mt=P.mat, lines=[];
-  for(const [k] of MATS){const n=plans[k].sheets.length; if(n) lines.push({l:mt[k].name,d:`${n} chapa${n>1?"s":""} × ${brl(mt[k].price)}`,v:n*(+mt[k].price||0)})}
+  for(const [k] of MATS){const n=plans[k].sheets.length; if(n) lines.push({k:"m:"+k,l:mt[k].name,d:`${n} chapa${n>1?"s":""} × ${brl(mt[k].price)}`,v:n*(+mt[k].price||0),u:+mt[k].price||0})}
   const edge=A.parts.reduce((a,p)=>a+p.edge*p.q,0)*1.1;
-  if(edge) lines.push({l:"Fita de borda",d:`${num(edge,1)} m × ${brl(B.edge)}`,v:edge*(+B.edge||0)});
-  if(A.hw.hinge) lines.push({l:"Dobradiças",d:`${A.hw.hinge} × ${brl(B.hinge)}`,v:A.hw.hinge*(+B.hinge||0)});
-  if(A.hw.slide) lines.push({l:"Corrediças (par)",d:`${A.hw.slide} × ${brl(B.slide)}`,v:A.hw.slide*(+B.slide||0)});
-  if(A.hw.pull) lines.push({l:"Puxadores",d:`${A.hw.pull} × ${brl(B.pull)}`,v:A.hw.pull*(+B.pull||0)});
-  if(A.hw.track) lines.push({l:"Kit de porta de correr",d:`${A.hw.track} folha${A.hw.track>1?"s":""} × ${brl(B.track)}`,v:A.hw.track*(+B.track||0)});
-  if(A.hw.perfil) lines.push({l:"Perfil puxador",d:`${num(A.hw.perfil,2)} m × ${brl(B.perfil)}`,v:A.hw.perfil*(+B.perfil||0)});
-  if(A.hw.push) lines.push({l:"Fecho toque",d:`${A.hw.push} × ${brl(B.push)}`,v:A.hw.push*(+B.push||0)});
-  if(A.hw.rod) lines.push({l:"Tubo de cabide",d:`${num(A.hw.rod,2)} m × ${brl(B.rod)}`,v:A.hw.rod*(+B.rod||0)});
-  if(A.hw.rodSup) lines.push({l:"Suportes de cabide",d:`${A.hw.rodSup} × ${brl(B.rodSup)}`,v:A.hw.rodSup*(+B.rodSup||0)});
+  const hw=(k,q,l,d)=>{ if(q) lines.push({k,l,d:`${d} × ${brl(B[k])}`,v:q*(+B[k]||0),u:+B[k]||0}) };
+  hw("edge",edge,"Fita de borda",`${num(edge,1)} m`);
+  hw("hinge",A.hw.hinge,"Dobradiças",A.hw.hinge);
+  hw("slide",A.hw.slide,"Corrediças (par)",A.hw.slide);
+  hw("pull",A.hw.pull,"Puxadores",A.hw.pull);
+  hw("track",A.hw.track,"Kit de porta de correr",`${A.hw.track} folha${A.hw.track>1?"s":""}`);
+  hw("perfil",A.hw.perfil,"Perfil puxador",`${num(A.hw.perfil,2)} m`);
+  hw("push",A.hw.push,"Fecho toque",A.hw.push);
+  hw("rod",A.hw.rod,"Tubo de cabide",`${num(A.hw.rod,2)} m`);
+  hw("rodSup",A.hw.rodSup,"Suportes de cabide",A.hw.rodSup);
+  const missing=lines.filter(l=>!(l.u>0));
   const mat=lines.reduce((a,l)=>a+l.v,0), labor=+B.labor||0, inst=+B.install||0, base=mat+labor+inst, margin=base*(+B.margin||0)/100;
-  return {A,plans,lines,mat,labor,inst,base,margin,total:base+margin};
+  return {A,plans,lines,missing,mat,labor,inst,base,margin,total:base+margin};
 }
-const money=(k,v)=>`<div class="unit"><input class="in n" data-q="${k}" value="${v}" inputmode="decimal"><em>R$</em></div>`;
+/* preços em branco: avisa antes de mandar um total incompleto para o cliente */
+function missingText(Q){return Q.missing.map(l=>l.k.startsWith("m:")?"chapa "+l.l:l.l.toLowerCase()).join(", ")}
+function checkPrices(Q,what){
+  if(!Q.missing.length) return Promise.resolve(true);
+  return new Promise(res=>{
+    dlg(`<h2>Faltam preços</h2><p>Ainda não tem preço para: <b>${esc(missingText(Q))}</b>. Sem isso, ${what} sai com o total errado.</p><p class="note">Os preços vêm em branco porque cada região tem um valor. Preencha com os dos seus fornecedores na aba Orçamento.</p>
+      <div class="row act"><button class="btn ghost" data-go2>Continuar assim mesmo</button><button class="btn pri" data-fill>Preencher os preços</button></div>`,el=>{
+      $("[data-go2]",el).onclick=()=>{closeDlg(); res(true)};
+      $("[data-fill]",el).onclick=()=>{closeDlg(); if(curView!=="quote") setView("quote"); setTimeout(()=>{const i=$("#quoteWrap .need"); if(i){i.scrollIntoView({block:"center"}); i.focus()}},60); res(false)};
+    });
+  });
+}
+const PRICE_KEY="croqui3d-precos";
+/* guarda no aparelho o último preço digitado de cada item, para o próximo projeto já vir com ele */
+function rememberPrice(key,v){
+  let o=null; try{o=JSON.parse(lsGet(PRICE_KEY)||"null")}catch(_){}
+  if(!o||typeof o!=="object") o={}; o.mat=o.mat||{}; o.budget=o.budget||{};
+  if(key.startsWith("m:")) o.mat[key.slice(2)]=+v||0; else o.budget[key]=+v||0;
+  lsSet(PRICE_KEY,JSON.stringify(o));
+}
+const pv=v=>+v?v:"";
+const money=(k,v)=>`<div class="unit"><input class="in n" data-q="${k}" value="${pv(v)}" placeholder="0,00" inputmode="decimal"><em>R$</em></div>`;
 function renderQuote(){
   const w=$("#quoteWrap"), B=P.budget, mt=P.mat;
   w.innerHTML=`<div class="phead"><div><h1>Orçamento</h1><p>${esc(P.name)}</p></div><div class="row"><button class="btn" data-qa="copy">Copiar resumo</button><button class="btn" data-qa="client">3D para o cliente</button><button class="btn pri" data-qa="pdf">Gerar PDF</button></div></div>
+  <div id="qMissTop"></div>
   <div class="qgrid">
     <div style="display:grid;gap:18px;min-width:0">
       <div class="card"><h2>Cliente</h2><div style="display:grid;gap:10px">
@@ -124,12 +148,12 @@ function renderQuote(){
         <label class="f"><span class="lb">Seu WhatsApp (para o cliente aprovar)</span><input class="in" data-q="phone" value="${esc(B.phone||"")}" placeholder="ex.: 11 98765-4321" inputmode="tel"></label>
         <div class="f"><span class="lb">Situação do orçamento</span><div class="seg">${STATUS.map(([k,l])=>`<button data-st="${k}" aria-pressed="${(B.status||"rascunho")===k}">${l}</button>`).join("")}</div>${B.statusAt?`<span class="note">Atualizado em ${new Date(B.statusAt).toLocaleDateString("pt-BR")}</span>`:""}</div>
         <p class="note">Com o WhatsApp preenchido, o PDF e o 3D para o cliente ganham os botões <b>Aprovar</b> e <b>Pedir ajuste</b>, que abrem uma conversa com você já com a mensagem pronta.</p></div></div>
-      <div class="card"><h2>Chapas</h2><span class="badge">Valores de exemplo: ajuste aos preços dos seus fornecedores</span>
+      <div class="card"><h2>Chapas</h2><span class="badge">Preencha com os preços da sua região</span>
         <div style="display:grid;gap:12px;margin-top:12px">${MATS.map(([k,l])=>`<div class="r3 mrow" style="grid-template-columns:2fr 1fr 1.3fr">
           <label class="f"><span class="lb">${l}</span><input class="in" data-m="${k}" data-mk="name" value="${esc(mt[k].name)}"></label>
           <label class="f"><span class="lb">Espessura</span><div class="unit"><input class="in n" data-m="${k}" data-mk="t" value="${mt[k].t}" inputmode="decimal"><em>mm</em></div></label>
-          <label class="f"><span class="lb">Preço da chapa</span><div class="unit"><input class="in n" data-m="${k}" data-mk="price" value="${mt[k].price}" inputmode="decimal"><em>R$</em></div></label></div>`).join("")}</div></div>
-      <div class="card"><h2>Ferragens e acabamento</h2><div class="r2">
+          <label class="f"><span class="lb">Preço da chapa</span><div class="unit"><input class="in n" data-m="${k}" data-mk="price" value="${pv(mt[k].price)}" placeholder="0,00" inputmode="decimal"><em>R$</em></div></label></div>`).join("")}</div></div>
+      <div class="card"><h2>Ferragens e acabamento</h2><p class="note" style="margin-bottom:10px">Os preços vêm em branco porque mudam de região para região. Os que você digitar ficam guardados neste aparelho para os próximos projetos.</p><div class="r2">
         <label class="f"><span class="lb">Fita de borda (por metro)</span>${money("edge",B.edge)}</label>
         <label class="f"><span class="lb">Dobradiça (unidade)</span>${money("hinge",B.hinge)}</label>
         <label class="f"><span class="lb">Corrediça (par)</span>${money("slide",B.slide)}</label>
@@ -153,18 +177,24 @@ function renderQSum(){
   if(!Q.A.hasParts){el.innerHTML=`<h2>Resumo</h2><p class="note" style="margin-bottom:12px">Insira móveis no Desenho para calcular chapas, fita e ferragens.</p><button class="btn pri" data-go="insert">Inserir móvel</button>`; return}
   el.innerHTML=`<h2>Resumo</h2>
     <div style="display:grid;gap:4px;margin-bottom:8px">${Q.A.mods.map(m=>`<div class="note"><b style="color:var(--fg)">${esc(m.name)}</b> · ${fmtL(m.W)} × ${fmtL(m.H)} × ${fmtL(m.D)} ${P.unit} · ${esc(FIN[m.fb]?.[0])} / ${esc(FIN[m.ff]?.[0])}</div>`).join("")}</div>
-    ${Q.lines.map(l=>`<div class="qline"><span>${esc(l.l)}</span><small>${esc(l.d)}</small><b>${brl(l.v)}</b></div>`).join("")}
+    ${Q.missing.length?`<div class="qmiss"><b>Faltam preços</b><span>Preencha: ${esc(missingText(Q))}. Enquanto isso, o total fica incompleto.</span></div>`:""}
+    ${Q.lines.map(l=>`<div class="qline${l.u>0?"":" qzero"}"><span>${esc(l.l)}</span><small>${esc(l.d)}</small><b>${l.u>0?brl(l.v):"sem preço"}</b></div>`).join("")}
     <div class="qline"><span><b style="font:inherit;font-weight:600">Materiais</b></span><small>&nbsp;</small><b>${brl(Q.mat)}</b></div>
     ${Q.labor?`<div class="qline"><span>Mão de obra</span><small>&nbsp;</small><b>${brl(Q.labor)}</b></div>`:""}
     ${Q.inst?`<div class="qline"><span>Instalação e frete</span><small>&nbsp;</small><b>${brl(Q.inst)}</b></div>`:""}
     ${Q.margin?`<div class="qline"><span>Margem</span><small>${num(P.budget.margin,1)}%</small><b>${brl(Q.margin)}</b></div>`:""}
-    <div class="qtotal"><span class="lb">Total</span><b>${brl(Q.total)}</b></div>`;
+    <div class="qtotal"><span class="lb">${Q.missing.length?"Total (incompleto)":"Total"}</span><b>${Q.missing.length&&!Q.total?"—":brl(Q.total)}</b></div>`;
+  const top=$("#qMissTop"); if(top) top.innerHTML=Q.missing.length?`<div class="qmiss" style="margin:0 0 14px"><b>Faltam preços</b><span>Os preços vêm em branco porque cada região tem um valor. Preencha os campos marcados com os preços dos seus fornecedores.</span></div>`:"";
+  const miss=new Set(Q.missing.map(l=>l.k));
+  $$("#quoteWrap [data-q],#quoteWrap [data-mk=price]").forEach(i=>{const k=i.dataset.m?"m:"+i.dataset.m:i.dataset.q; i.classList.toggle("need",miss.has(k))});
 }
 $("#quoteWrap").addEventListener("input",e=>{
   const d=e.target.dataset, B=P.budget;
   if(d.q){ if(d.q==="client"||d.q==="notes"||d.q==="phone"){B[d.q]=e.target.value; if(d.q==="phone") lsSet("croqui3d-whats",e.target.value)} else {const v=parseN(e.target.value); B[d.q]=isFinite(v)?v:0} }
-  else if(d.m){ const m=P.mat[d.m]; if(d.mk==="name") m.name=e.target.value; else {const v=parseN(e.target.value); if(isFinite(v)) m[d.mk]=v; if(d.mk==="t"){touch(); dirty3D=true}} }
+  else if(d.m){ const m=P.mat[d.m]; if(d.mk==="name") m.name=e.target.value; else {const v=parseN(e.target.value); if(isFinite(v)) m[d.mk]=v; else if(d.mk==="price"&&!e.target.value.trim()) m.price=0; if(d.mk==="t"){touch(); dirty3D=true}} }
   else return;
+  if(d.mk==="price") rememberPrice("m:"+d.m,P.mat[d.m].price);
+  else if(d.q&&["edge","hinge","slide","pull","rod","rodSup","track","perfil","push"].includes(d.q)) rememberPrice(d.q,B[d.q]);
   save(); renderQSum();
 });
 $("#quoteWrap").addEventListener("click",e=>{const a=e.target.closest("[data-qa]")?.dataset.qa; if(a==="pdf") exportPDF(); if(a==="copy") copySummary(); if(a==="client") sendClient(); const st=e.target.closest("[data-st]"); if(st) setStatus(st.dataset.st)});
@@ -175,6 +205,7 @@ function summaryText(){
     `*Total: ${brl(Q.total)}*`,B.notes?"\n"+B.notes:"","","Para aprovar, é só responder *APROVADO* aqui."].filter((l,i,a)=>l!==""||a[i-1]!=="").join("\n");
 }
 async function copySummary(){
+  if(!await checkPrices(quote(),"o resumo")) return;
   const t=summaryText();
   try{await navigator.clipboard.writeText(t); toast("Resumo copiado. Cole no WhatsApp ou e-mail")}
   catch(_){dlg(`<h2>Resumo do orçamento</h2><p>Selecione e copie o texto.</p><textarea class="in" rows="10" readonly>${esc(t)}</textarea><div class="row"><button class="btn ghost" data-x>Fechar</button></div>`,el=>{$("[data-x]",el).onclick=closeDlg; const ta=$("textarea",el); ta.focus(); ta.select()})}

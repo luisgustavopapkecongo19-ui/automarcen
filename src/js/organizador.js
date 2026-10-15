@@ -63,7 +63,7 @@ function showOrg(){
   }else{
     const ms=D.materiais.sort((a,b)=>b.chapas-a.chapas);
     body=ms.length?`<div class="tbl"><table><thead><tr><th>Material</th><th class="n">Chapas</th><th class="n">Gasto</th></tr></thead><tbody>
-      ${ms.map(m=>`<tr><td><b>${esc(m.nome)}</b><br><span class="note">${m.projetoIds.length} projeto${m.projetoIds.length>1?"s":""} · ${brl(m.precoChapa)} a chapa</span></td><td class="n">${m.chapas}</td><td class="n">${brl0(m.chapas*m.precoChapa)}</td></tr>`).join("")}
+      ${ms.map(m=>`<tr><td><b>${esc(m.nome)}</b><br><span class="note">${m.projetoIds.length} projeto${m.projetoIds.length>1?"s":""} · ${m.precoChapa?brl(m.precoChapa)+" a chapa":"sem preço"}</span></td><td class="n">${m.chapas}</td><td class="n">${brl0(m.chapas*m.precoChapa)}</td></tr>`).join("")}
       </tbody></table></div><p class="note">Soma das chapas do plano de corte de todos os projetos.</p>`:`<p>Nenhum projeto tem móveis ainda.</p>`;
   }
   dlg(`<h2>Clientes e relatórios</h2>

@@ -43,9 +43,13 @@ const TPL_ICON={
   kit_cozinha:'<rect x="4" y="24" width="30" height="18" rx="1"/><rect x="4" y="6" width="30" height="10" rx="1"/><rect x="38" y="4" width="14" height="38" rx="1"/><path d="M38 12h14M38 26h14M19 24v18M19 6v10M41 18h8v5h-8z"/>',
   kit_tv:'<rect x="6" y="6" width="44" height="22" rx="1"/><rect x="16" y="9" width="24" height="14" rx="1"/><rect x="8" y="32" width="40" height="9" rx="1"/><path d="M22 32v9M34 32v9M25 36.5h6"/>'
 };
-function defaultMat(){return{caixa:{name:"MDF 18 mm Branco TX",t:18,price:290},frente:{name:"MDF 18 mm Carvalho",t:18,price:430,grain:true},fundo:{name:"MDF 6 mm Branco",t:6,price:120}}}
-function defaultBudget(){return{client:"",notes:"Prazo de entrega a combinar. Instalação inclusa.",edge:2.5,hinge:9,slide:38,pull:18,rod:28,rodSup:3.5,track:65,perfil:45,push:22,phone:"",status:"rascunho",statusAt:0,labor:0,install:0,margin:30}}
-function newProject(name){const ph=lsGet("croqui3d-whats")||""; return{id:uid(),name,grid:5,unit:"cm",textH:4,layers:LAYERS0.map(l=>({...l,visible:true,locked:false})),curLayer:"estrutura",items:[],mat:defaultMat(),budget:Object.assign(defaultBudget(),{phone:ph}),sheet:{w:2750,h:1840,kerf:4,trim:10},updated:Date.now()}}
+function defaultMat(){return{caixa:{name:"MDF 18 mm Branco TX",t:18,price:0},frente:{name:"MDF 18 mm Carvalho",t:18,price:0,grain:true},fundo:{name:"MDF 6 mm Branco",t:6,price:0}}}
+function defaultBudget(){return{client:"",notes:"Prazo de entrega a combinar. Instalação inclusa.",edge:0,hinge:0,slide:0,pull:0,rod:0,rodSup:0,track:0,perfil:0,push:0,phone:"",status:"rascunho",statusAt:0,labor:0,install:0,margin:30}}
+/* preços que a pessoa já digitou neste aparelho (os padrões vêm zerados: cada região tem um valor) */
+function myPrices(){try{const o=JSON.parse(lsGet("croqui3d-precos")||"null"); return o&&typeof o==="object"?o:null}catch(_){return null}}
+function newProject(name){const ph=lsGet("croqui3d-whats")||"", mp=myPrices(), mat=defaultMat(), budget=Object.assign(defaultBudget(),{phone:ph});
+  if(mp){for(const k in mat) if(+mp.mat?.[k]>0) mat[k].price=+mp.mat[k]; for(const k in mp.budget||{}) if(k in budget&&+mp.budget[k]>0) budget[k]=+mp.budget[k]}
+  return{id:uid(),name,grid:5,unit:"cm",textH:4,layers:LAYERS0.map(l=>({...l,visible:true,locked:false})),curLayer:"estrutura",items:[],mat,budget,sheet:{w:2750,h:1840,kerf:4,trim:10},updated:Date.now()}}
 function makeModule(tplKey,over){const t=JSON.parse(JSON.stringify(TPL[tplKey]||TPL.livre));const m=Object.assign({id:uid(),t:"mod",layer:"moveis",col:"layer",lw:1.2,x:0,y:0,dims:true},t,over||{});m.y=-((+m.elev||0)+m.H);delete m.elev;return m}
 function sampleProject(){
   const p=newProject("Exemplo: cozinha");

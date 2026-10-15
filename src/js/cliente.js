@@ -49,12 +49,14 @@ fit();addEventListener("resize",fit);let open=0,v=0;document.getElementById("tg"
 }
 async function sendClient(){
   const Q=quote(); if(!Q.A.hasParts){toast("Insira móveis para gerar o orçamento"); return}
+  if(!await checkPrices(Q,"o arquivo do cliente")) return;
   if(!waNum()) toast("Dica: preencha seu WhatsApp no Orçamento para o cliente aprovar com um toque");
   const html=clientHTML();
   if(await saveFile(fileBase()+"-3d-cliente.html",new Blob([html],{type:"text/html"}))){toast("Arquivo 3D salvo. Mande para o cliente pelo WhatsApp"); if(P.budget.status==="rascunho"||!P.budget.status) setStatus("enviado")}
 }
 async function exportPDF(){
   const Q=quote(); if(!Q.A.hasParts){toast("Insira móveis para gerar o orçamento"); return}
+  if(!await checkPrices(Q,"o PDF")) return;
   toast("Gerando PDF…");
   try{await lib("pdf")}catch(_){toast("O gerador de PDF não carregou. Verifique a conexão"); return}
   try{await lib("3d")}catch(_){}

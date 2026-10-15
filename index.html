@@ -220,6 +220,10 @@ td.code{font:600 calc(12px*var(--fs,1)) var(--mono)}
 .qline{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:9px 0;border-bottom:1px solid var(--line)}
 .qline small{color:var(--muted);grid-column:1}
 .qline b{font:500 calc(14px*var(--fs,1)) var(--mono);grid-row:1/3;grid-column:2;align-self:center;font-variant-numeric:tabular-nums}
+.qmiss{display:grid;gap:2px;margin:6px 0 4px;padding:10px 12px;border-radius:10px;color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,transparent);font-size:calc(13px*var(--fs,1))}
+.qmiss span{color:var(--fg)}
+.qline.qzero b{color:var(--warn);font-family:inherit;font-weight:600}
+.in.need{border-color:var(--warn);box-shadow:0 0 0 2px color-mix(in srgb,var(--warn) 25%,transparent)}
 .qtotal{display:flex;justify-content:space-between;align-items:baseline;padding-top:12px}
 .qtotal b{font:600 calc(26px*var(--fs,1)) var(--mono);letter-spacing:-.02em;color:var(--accent);font-variant-numeric:tabular-nums}
 @media (max-width:600px){.mrow{grid-template-columns:1fr 1fr!important}.mrow>:first-child{grid-column:1/-1}}
@@ -830,9 +834,13 @@ const TPL_ICON={
   kit_cozinha:'<rect x="4" y="24" width="30" height="18" rx="1"/><rect x="4" y="6" width="30" height="10" rx="1"/><rect x="38" y="4" width="14" height="38" rx="1"/><path d="M38 12h14M38 26h14M19 24v18M19 6v10M41 18h8v5h-8z"/>',
   kit_tv:'<rect x="6" y="6" width="44" height="22" rx="1"/><rect x="16" y="9" width="24" height="14" rx="1"/><rect x="8" y="32" width="40" height="9" rx="1"/><path d="M22 32v9M34 32v9M25 36.5h6"/>'
 };
-function defaultMat(){return{caixa:{name:"MDF 18 mm Branco TX",t:18,price:290},frente:{name:"MDF 18 mm Carvalho",t:18,price:430,grain:true},fundo:{name:"MDF 6 mm Branco",t:6,price:120}}}
-function defaultBudget(){return{client:"",notes:"Prazo de entrega a combinar. Instalação inclusa.",edge:2.5,hinge:9,slide:38,pull:18,rod:28,rodSup:3.5,track:65,perfil:45,push:22,phone:"",status:"rascunho",statusAt:0,labor:0,install:0,margin:30}}
-function newProject(name){const ph=lsGet("croqui3d-whats")||""; return{id:uid(),name,grid:5,unit:"cm",textH:4,layers:LAYERS0.map(l=>({...l,visible:true,locked:false})),curLayer:"estrutura",items:[],mat:defaultMat(),budget:Object.assign(defaultBudget(),{phone:ph}),sheet:{w:2750,h:1840,kerf:4,trim:10},updated:Date.now()}}
+function defaultMat(){return{caixa:{name:"MDF 18 mm Branco TX",t:18,price:0},frente:{name:"MDF 18 mm Carvalho",t:18,price:0,grain:true},fundo:{name:"MDF 6 mm Branco",t:6,price:0}}}
+function defaultBudget(){return{client:"",notes:"Prazo de entrega a combinar. Instalação inclusa.",edge:0,hinge:0,slide:0,pull:0,rod:0,rodSup:0,track:0,perfil:0,push:0,phone:"",status:"rascunho",statusAt:0,labor:0,install:0,margin:30}}
+/* preços que a pessoa já digitou neste aparelho (os padrões vêm zerados: cada região tem um valor) */
+function myPrices(){try{const o=JSON.parse(lsGet("croqui3d-precos")||"null"); return o&&typeof o==="object"?o:null}catch(_){return null}}
+function newProject(name){const ph=lsGet("croqui3d-whats")||"", mp=myPrices(), mat=defaultMat(), budget=Object.assign(defaultBudget(),{phone:ph});
+  if(mp){for(const k in mat) if(+mp.mat?.[k]>0) mat[k].price=+mp.mat[k]; for(const k in mp.budget||{}) if(k in budget&&+mp.budget[k]>0) budget[k]=+mp.budget[k]}
+  return{id:uid(),name,grid:5,unit:"cm",textH:4,layers:LAYERS0.map(l=>({...l,visible:true,locked:false})),curLayer:"estrutura",items:[],mat,budget,sheet:{w:2750,h:1840,kerf:4,trim:10},updated:Date.now()}}
 function makeModule(tplKey,over){const t=JSON.parse(JSON.stringify(TPL[tplKey]||TPL.livre));const m=Object.assign({id:uid(),t:"mod",layer:"moveis",col:"layer",lw:1.2,x:0,y:0,dims:true},t,over||{});m.y=-((+m.elev||0)+m.H);delete m.elev;return m}
 function sampleProject(){
   const p=newProject("Exemplo: cozinha");
@@ -2549,24 +2557,48 @@ document.addEventListener("click",e=>{const g=e.target.closest("[data-go]"); if(
 
 function quote(){
   const A=allParts(), plans=cutPlans(A), B=P.budget, mt=P.mat, lines=[];
-  for(const [k] of MATS){const n=plans[k].sheets.length; if(n) lines.push({l:mt[k].name,d:`${n} chapa${n>1?"s":""} × ${brl(mt[k].price)}`,v:n*(+mt[k].price||0)})}
+  for(const [k] of MATS){const n=plans[k].sheets.length; if(n) lines.push({k:"m:"+k,l:mt[k].name,d:`${n} chapa${n>1?"s":""} × ${brl(mt[k].price)}`,v:n*(+mt[k].price||0),u:+mt[k].price||0})}
   const edge=A.parts.reduce((a,p)=>a+p.edge*p.q,0)*1.1;
-  if(edge) lines.push({l:"Fita de borda",d:`${num(edge,1)} m × ${brl(B.edge)}`,v:edge*(+B.edge||0)});
-  if(A.hw.hinge) lines.push({l:"Dobradiças",d:`${A.hw.hinge} × ${brl(B.hinge)}`,v:A.hw.hinge*(+B.hinge||0)});
-  if(A.hw.slide) lines.push({l:"Corrediças (par)",d:`${A.hw.slide} × ${brl(B.slide)}`,v:A.hw.slide*(+B.slide||0)});
-  if(A.hw.pull) lines.push({l:"Puxadores",d:`${A.hw.pull} × ${brl(B.pull)}`,v:A.hw.pull*(+B.pull||0)});
-  if(A.hw.track) lines.push({l:"Kit de porta de correr",d:`${A.hw.track} folha${A.hw.track>1?"s":""} × ${brl(B.track)}`,v:A.hw.track*(+B.track||0)});
-  if(A.hw.perfil) lines.push({l:"Perfil puxador",d:`${num(A.hw.perfil,2)} m × ${brl(B.perfil)}`,v:A.hw.perfil*(+B.perfil||0)});
-  if(A.hw.push) lines.push({l:"Fecho toque",d:`${A.hw.push} × ${brl(B.push)}`,v:A.hw.push*(+B.push||0)});
-  if(A.hw.rod) lines.push({l:"Tubo de cabide",d:`${num(A.hw.rod,2)} m × ${brl(B.rod)}`,v:A.hw.rod*(+B.rod||0)});
-  if(A.hw.rodSup) lines.push({l:"Suportes de cabide",d:`${A.hw.rodSup} × ${brl(B.rodSup)}`,v:A.hw.rodSup*(+B.rodSup||0)});
+  const hw=(k,q,l,d)=>{ if(q) lines.push({k,l,d:`${d} × ${brl(B[k])}`,v:q*(+B[k]||0),u:+B[k]||0}) };
+  hw("edge",edge,"Fita de borda",`${num(edge,1)} m`);
+  hw("hinge",A.hw.hinge,"Dobradiças",A.hw.hinge);
+  hw("slide",A.hw.slide,"Corrediças (par)",A.hw.slide);
+  hw("pull",A.hw.pull,"Puxadores",A.hw.pull);
+  hw("track",A.hw.track,"Kit de porta de correr",`${A.hw.track} folha${A.hw.track>1?"s":""}`);
+  hw("perfil",A.hw.perfil,"Perfil puxador",`${num(A.hw.perfil,2)} m`);
+  hw("push",A.hw.push,"Fecho toque",A.hw.push);
+  hw("rod",A.hw.rod,"Tubo de cabide",`${num(A.hw.rod,2)} m`);
+  hw("rodSup",A.hw.rodSup,"Suportes de cabide",A.hw.rodSup);
+  const missing=lines.filter(l=>!(l.u>0));
   const mat=lines.reduce((a,l)=>a+l.v,0), labor=+B.labor||0, inst=+B.install||0, base=mat+labor+inst, margin=base*(+B.margin||0)/100;
-  return {A,plans,lines,mat,labor,inst,base,margin,total:base+margin};
+  return {A,plans,lines,missing,mat,labor,inst,base,margin,total:base+margin};
 }
-const money=(k,v)=>`<div class="unit"><input class="in n" data-q="${k}" value="${v}" inputmode="decimal"><em>R$</em></div>`;
+/* preços em branco: avisa antes de mandar um total incompleto para o cliente */
+function missingText(Q){return Q.missing.map(l=>l.k.startsWith("m:")?"chapa "+l.l:l.l.toLowerCase()).join(", ")}
+function checkPrices(Q,what){
+  if(!Q.missing.length) return Promise.resolve(true);
+  return new Promise(res=>{
+    dlg(`<h2>Faltam preços</h2><p>Ainda não tem preço para: <b>${esc(missingText(Q))}</b>. Sem isso, ${what} sai com o total errado.</p><p class="note">Os preços vêm em branco porque cada região tem um valor. Preencha com os dos seus fornecedores na aba Orçamento.</p>
+      <div class="row act"><button class="btn ghost" data-go2>Continuar assim mesmo</button><button class="btn pri" data-fill>Preencher os preços</button></div>`,el=>{
+      $("[data-go2]",el).onclick=()=>{closeDlg(); res(true)};
+      $("[data-fill]",el).onclick=()=>{closeDlg(); if(curView!=="quote") setView("quote"); setTimeout(()=>{const i=$("#quoteWrap .need"); if(i){i.scrollIntoView({block:"center"}); i.focus()}},60); res(false)};
+    });
+  });
+}
+const PRICE_KEY="croqui3d-precos";
+/* guarda no aparelho o último preço digitado de cada item, para o próximo projeto já vir com ele */
+function rememberPrice(key,v){
+  let o=null; try{o=JSON.parse(lsGet(PRICE_KEY)||"null")}catch(_){}
+  if(!o||typeof o!=="object") o={}; o.mat=o.mat||{}; o.budget=o.budget||{};
+  if(key.startsWith("m:")) o.mat[key.slice(2)]=+v||0; else o.budget[key]=+v||0;
+  lsSet(PRICE_KEY,JSON.stringify(o));
+}
+const pv=v=>+v?v:"";
+const money=(k,v)=>`<div class="unit"><input class="in n" data-q="${k}" value="${pv(v)}" placeholder="0,00" inputmode="decimal"><em>R$</em></div>`;
 function renderQuote(){
   const w=$("#quoteWrap"), B=P.budget, mt=P.mat;
   w.innerHTML=`<div class="phead"><div><h1>Orçamento</h1><p>${esc(P.name)}</p></div><div class="row"><button class="btn" data-qa="copy">Copiar resumo</button><button class="btn" data-qa="client">3D para o cliente</button><button class="btn pri" data-qa="pdf">Gerar PDF</button></div></div>
+  <div id="qMissTop"></div>
   <div class="qgrid">
     <div style="display:grid;gap:18px;min-width:0">
       <div class="card"><h2>Cliente</h2><div style="display:grid;gap:10px">
@@ -2575,12 +2607,12 @@ function renderQuote(){
         <label class="f"><span class="lb">Seu WhatsApp (para o cliente aprovar)</span><input class="in" data-q="phone" value="${esc(B.phone||"")}" placeholder="ex.: 11 98765-4321" inputmode="tel"></label>
         <div class="f"><span class="lb">Situação do orçamento</span><div class="seg">${STATUS.map(([k,l])=>`<button data-st="${k}" aria-pressed="${(B.status||"rascunho")===k}">${l}</button>`).join("")}</div>${B.statusAt?`<span class="note">Atualizado em ${new Date(B.statusAt).toLocaleDateString("pt-BR")}</span>`:""}</div>
         <p class="note">Com o WhatsApp preenchido, o PDF e o 3D para o cliente ganham os botões <b>Aprovar</b> e <b>Pedir ajuste</b>, que abrem uma conversa com você já com a mensagem pronta.</p></div></div>
-      <div class="card"><h2>Chapas</h2><span class="badge">Valores de exemplo: ajuste aos preços dos seus fornecedores</span>
+      <div class="card"><h2>Chapas</h2><span class="badge">Preencha com os preços da sua região</span>
         <div style="display:grid;gap:12px;margin-top:12px">${MATS.map(([k,l])=>`<div class="r3 mrow" style="grid-template-columns:2fr 1fr 1.3fr">
           <label class="f"><span class="lb">${l}</span><input class="in" data-m="${k}" data-mk="name" value="${esc(mt[k].name)}"></label>
           <label class="f"><span class="lb">Espessura</span><div class="unit"><input class="in n" data-m="${k}" data-mk="t" value="${mt[k].t}" inputmode="decimal"><em>mm</em></div></label>
-          <label class="f"><span class="lb">Preço da chapa</span><div class="unit"><input class="in n" data-m="${k}" data-mk="price" value="${mt[k].price}" inputmode="decimal"><em>R$</em></div></label></div>`).join("")}</div></div>
-      <div class="card"><h2>Ferragens e acabamento</h2><div class="r2">
+          <label class="f"><span class="lb">Preço da chapa</span><div class="unit"><input class="in n" data-m="${k}" data-mk="price" value="${pv(mt[k].price)}" placeholder="0,00" inputmode="decimal"><em>R$</em></div></label></div>`).join("")}</div></div>
+      <div class="card"><h2>Ferragens e acabamento</h2><p class="note" style="margin-bottom:10px">Os preços vêm em branco porque mudam de região para região. Os que você digitar ficam guardados neste aparelho para os próximos projetos.</p><div class="r2">
         <label class="f"><span class="lb">Fita de borda (por metro)</span>${money("edge",B.edge)}</label>
         <label class="f"><span class="lb">Dobradiça (unidade)</span>${money("hinge",B.hinge)}</label>
         <label class="f"><span class="lb">Corrediça (par)</span>${money("slide",B.slide)}</label>
@@ -2604,18 +2636,24 @@ function renderQSum(){
   if(!Q.A.hasParts){el.innerHTML=`<h2>Resumo</h2><p class="note" style="margin-bottom:12px">Insira móveis no Desenho para calcular chapas, fita e ferragens.</p><button class="btn pri" data-go="insert">Inserir móvel</button>`; return}
   el.innerHTML=`<h2>Resumo</h2>
     <div style="display:grid;gap:4px;margin-bottom:8px">${Q.A.mods.map(m=>`<div class="note"><b style="color:var(--fg)">${esc(m.name)}</b> · ${fmtL(m.W)} × ${fmtL(m.H)} × ${fmtL(m.D)} ${P.unit} · ${esc(FIN[m.fb]?.[0])} / ${esc(FIN[m.ff]?.[0])}</div>`).join("")}</div>
-    ${Q.lines.map(l=>`<div class="qline"><span>${esc(l.l)}</span><small>${esc(l.d)}</small><b>${brl(l.v)}</b></div>`).join("")}
+    ${Q.missing.length?`<div class="qmiss"><b>Faltam preços</b><span>Preencha: ${esc(missingText(Q))}. Enquanto isso, o total fica incompleto.</span></div>`:""}
+    ${Q.lines.map(l=>`<div class="qline${l.u>0?"":" qzero"}"><span>${esc(l.l)}</span><small>${esc(l.d)}</small><b>${l.u>0?brl(l.v):"sem preço"}</b></div>`).join("")}
     <div class="qline"><span><b style="font:inherit;font-weight:600">Materiais</b></span><small>&nbsp;</small><b>${brl(Q.mat)}</b></div>
     ${Q.labor?`<div class="qline"><span>Mão de obra</span><small>&nbsp;</small><b>${brl(Q.labor)}</b></div>`:""}
     ${Q.inst?`<div class="qline"><span>Instalação e frete</span><small>&nbsp;</small><b>${brl(Q.inst)}</b></div>`:""}
     ${Q.margin?`<div class="qline"><span>Margem</span><small>${num(P.budget.margin,1)}%</small><b>${brl(Q.margin)}</b></div>`:""}
-    <div class="qtotal"><span class="lb">Total</span><b>${brl(Q.total)}</b></div>`;
+    <div class="qtotal"><span class="lb">${Q.missing.length?"Total (incompleto)":"Total"}</span><b>${Q.missing.length&&!Q.total?"—":brl(Q.total)}</b></div>`;
+  const top=$("#qMissTop"); if(top) top.innerHTML=Q.missing.length?`<div class="qmiss" style="margin:0 0 14px"><b>Faltam preços</b><span>Os preços vêm em branco porque cada região tem um valor. Preencha os campos marcados com os preços dos seus fornecedores.</span></div>`:"";
+  const miss=new Set(Q.missing.map(l=>l.k));
+  $$("#quoteWrap [data-q],#quoteWrap [data-mk=price]").forEach(i=>{const k=i.dataset.m?"m:"+i.dataset.m:i.dataset.q; i.classList.toggle("need",miss.has(k))});
 }
 $("#quoteWrap").addEventListener("input",e=>{
   const d=e.target.dataset, B=P.budget;
   if(d.q){ if(d.q==="client"||d.q==="notes"||d.q==="phone"){B[d.q]=e.target.value; if(d.q==="phone") lsSet("croqui3d-whats",e.target.value)} else {const v=parseN(e.target.value); B[d.q]=isFinite(v)?v:0} }
-  else if(d.m){ const m=P.mat[d.m]; if(d.mk==="name") m.name=e.target.value; else {const v=parseN(e.target.value); if(isFinite(v)) m[d.mk]=v; if(d.mk==="t"){touch(); dirty3D=true}} }
+  else if(d.m){ const m=P.mat[d.m]; if(d.mk==="name") m.name=e.target.value; else {const v=parseN(e.target.value); if(isFinite(v)) m[d.mk]=v; else if(d.mk==="price"&&!e.target.value.trim()) m.price=0; if(d.mk==="t"){touch(); dirty3D=true}} }
   else return;
+  if(d.mk==="price") rememberPrice("m:"+d.m,P.mat[d.m].price);
+  else if(d.q&&["edge","hinge","slide","pull","rod","rodSup","track","perfil","push"].includes(d.q)) rememberPrice(d.q,B[d.q]);
   save(); renderQSum();
 });
 $("#quoteWrap").addEventListener("click",e=>{const a=e.target.closest("[data-qa]")?.dataset.qa; if(a==="pdf") exportPDF(); if(a==="copy") copySummary(); if(a==="client") sendClient(); const st=e.target.closest("[data-st]"); if(st) setStatus(st.dataset.st)});
@@ -2626,6 +2664,7 @@ function summaryText(){
     `*Total: ${brl(Q.total)}*`,B.notes?"\n"+B.notes:"","","Para aprovar, é só responder *APROVADO* aqui."].filter((l,i,a)=>l!==""||a[i-1]!=="").join("\n");
 }
 async function copySummary(){
+  if(!await checkPrices(quote(),"o resumo")) return;
   const t=summaryText();
   try{await navigator.clipboard.writeText(t); toast("Resumo copiado. Cole no WhatsApp ou e-mail")}
   catch(_){dlg(`<h2>Resumo do orçamento</h2><p>Selecione e copie o texto.</p><textarea class="in" rows="10" readonly>${esc(t)}</textarea><div class="row"><button class="btn ghost" data-x>Fechar</button></div>`,el=>{$("[data-x]",el).onclick=closeDlg; const ta=$("textarea",el); ta.focus(); ta.select()})}
@@ -2681,12 +2720,14 @@ fit();addEventListener("resize",fit);let open=0,v=0;document.getElementById("tg"
 }
 async function sendClient(){
   const Q=quote(); if(!Q.A.hasParts){toast("Insira móveis para gerar o orçamento"); return}
+  if(!await checkPrices(Q,"o arquivo do cliente")) return;
   if(!waNum()) toast("Dica: preencha seu WhatsApp no Orçamento para o cliente aprovar com um toque");
   const html=clientHTML();
   if(await saveFile(fileBase()+"-3d-cliente.html",new Blob([html],{type:"text/html"}))){toast("Arquivo 3D salvo. Mande para o cliente pelo WhatsApp"); if(P.budget.status==="rascunho"||!P.budget.status) setStatus("enviado")}
 }
 async function exportPDF(){
   const Q=quote(); if(!Q.A.hasParts){toast("Insira móveis para gerar o orçamento"); return}
+  if(!await checkPrices(Q,"o PDF")) return;
   toast("Gerando PDF…");
   try{await lib("pdf")}catch(_){toast("O gerador de PDF não carregou. Verifique a conexão"); return}
   try{await lib("3d")}catch(_){}
@@ -2810,7 +2851,7 @@ function showOrg(){
   }else{
     const ms=D.materiais.sort((a,b)=>b.chapas-a.chapas);
     body=ms.length?`<div class="tbl"><table><thead><tr><th>Material</th><th class="n">Chapas</th><th class="n">Gasto</th></tr></thead><tbody>
-      ${ms.map(m=>`<tr><td><b>${esc(m.nome)}</b><br><span class="note">${m.projetoIds.length} projeto${m.projetoIds.length>1?"s":""} · ${brl(m.precoChapa)} a chapa</span></td><td class="n">${m.chapas}</td><td class="n">${brl0(m.chapas*m.precoChapa)}</td></tr>`).join("")}
+      ${ms.map(m=>`<tr><td><b>${esc(m.nome)}</b><br><span class="note">${m.projetoIds.length} projeto${m.projetoIds.length>1?"s":""} · ${m.precoChapa?brl(m.precoChapa)+" a chapa":"sem preço"}</span></td><td class="n">${m.chapas}</td><td class="n">${brl0(m.chapas*m.precoChapa)}</td></tr>`).join("")}
       </tbody></table></div><p class="note">Soma das chapas do plano de corte de todos os projetos.</p>`:`<p>Nenhum projeto tem móveis ainda.</p>`;
   }
   dlg(`<h2>Clientes e relatórios</h2>
@@ -3016,9 +3057,10 @@ function setView(v){
 }
 
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
-const APP_VER="v0.12 beta";
+const APP_VER="v0.13 beta";
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
+  {v:"v0.13 beta",items:["Preços em branco: os projetos novos não vêm mais com preços de exemplo, porque cada região tem um valor. Preencha chapas e ferragens com os preços dos seus fornecedores na aba Orçamento.","O último preço que você digitou de cada item fica guardado neste aparelho, e os próximos projetos já começam com ele.","Enquanto faltar algum preço, o Orçamento mostra o aviso Faltam preços, marca os campos vazios e o total aparece como incompleto. Antes de gerar o PDF, copiar o resumo ou mandar o 3D para o cliente, o AutoMarcen avisa.","Os projetos que você já tinha continuam com os preços que estavam neles."]},
   {v:"v0.12 beta",items:["Clientes e relatórios: no botão ⋯, veja quanto foi orçado e vendido por cliente, por mês e quantas chapas de cada material você usou. Toque num cliente para ver os orçamentos dele e num projeto para abri-lo.","Exportar tudo: no mesmo lugar, um arquivo .json com todos os clientes, projetos, orçamentos e materiais, para guardar uma cópia de segurança.","No app instalado pelo site: entre na sua conta AutoMarcen (botão ⋯ → Entrar na conta), com Google ou e-mail, e seus projetos aparecem no celular, no tablet e no computador."]},
   {v:"v0.11 beta",items:["Tela mais fácil de usar com o dedo no celular: o nome do projeto aparece inteiro, o Salvar mostra o texto e Aparência, Exportar e o Guia ficam no botão ⋯ do topo.","Abas Desenho, 3D, Peças e corte e Orçamento mais altas e com letra maior.","GRADE, OBJ, ORTO e os outros ficam numa linha só embaixo do desenho, que desliza para o lado. Desfazer e refazer ficam no começo dessa linha, perto do dedo.","Ao tocar num móvel, sobe um cartão com o nome e as medidas: dá para mudar largura, altura e profundidade ali mesmo, ou tocar em Editar para ver tudo.","Cores, Fina/Média/Grossa e cm/mm do painel ficaram no tamanho do dedo, e no tablet a coluna de ferramentas não mostra mais as letras de atalho."]},
   {v:"v0.10 beta",items:["Nome novo: o Croqui 3D agora se chama AutoMarcen. Seus projetos salvos, o seu WhatsApp e as suas preferências continuam como estavam."]},
@@ -3099,7 +3141,9 @@ const KB=[
  {id:"furacao",q:"Onde vejo a furação das peças?",k:"furacao furo furar caneco dobradica 35 corredica sistema 32 cavilha minifix broca",go:"pecas",
   a:"Na aba **Peças e corte**, no quadro **Furação**:\n- **Portas**: desenho de cada porta com os furos de caneco Ø35 mm, a 22,5 mm da borda, e a altura de cada furo.\n- **Corrediças**: altura da linha de furos em cada lateral, a 37 mm da frente e a cada 32 mm.\n- **Cavilhas e minifix**: o padrão das junções de laterais, tampo e base."},
  {id:"orcamento",q:"Como faço o orçamento?",k:"orcamento preco valor custo margem mao de obra total cliente cobrar",go:"orcamento",
-  a:"Na aba **Orçamento**, informe o preço das chapas, das ferragens, da mão de obra, da instalação e a margem. Os valores que vêm preenchidos são só exemplos: troque pelos dos seus fornecedores. O total é calculado sozinho a partir das peças."},
+  a:"Na aba **Orçamento**, informe o preço das chapas, das ferragens, da mão de obra, da instalação e a margem. Os preços vêm **em branco** porque cada região tem um valor: use os dos seus fornecedores. O último preço que você digitou de cada item fica guardado no aparelho e já vem nos próximos projetos. Enquanto faltar preço, aparece o aviso **Faltam preços**, os campos vazios ficam marcados e o total sai como incompleto. O total é calculado sozinho a partir das peças."},
+ {id:"precos-zerados",q:"Por que os preços estão zerados?",k:"preco zerado zero branco vazio sem preco faltam precos regiao fornecedor exemplo total incompleto R$ 0",go:"orcamento",
+  a:"Os preços de chapas e ferragens vêm **em branco** porque mudam muito de uma região para outra. Abra a aba **Orçamento** e preencha com os preços dos seus fornecedores. Você só faz isso uma vez: o último preço de cada item fica guardado no aparelho e os próximos projetos já começam com ele. Os projetos antigos continuam com os preços que tinham."},
  {id:"cliente",q:"Como mando o orçamento para o cliente aprovar?",k:"cliente mandar enviar pdf whatsapp resumo proposta compartilhar aprovar aprovacao link 3d situacao aprovado recusado",go:"orcamento",
   a:"Na aba **Orçamento**:\n1. Em **Seu WhatsApp**, coloque o seu número. Ele fica guardado.\n2. **Gerar PDF** cria a proposta com 3D, desenho e valores, e com os botões **Aprovar pelo WhatsApp** e **Pedir ajuste**.\n3. **3D para o cliente** salva um arquivo que o cliente abre no celular para girar o móvel, abrir as portas e tocar em **Aprovar**.\n4. **Copiar resumo** copia um texto curto para colar no WhatsApp.\nQuando o cliente responder, marque a **Situação do orçamento** (Enviado, Aprovado ou Recusado). Ela aparece na lista de Projetos."},
  {id:"foto",q:"Dá para montar o móvel a partir de uma foto do croqui?",k:"foto croqui papel camera imagem tirar foto desenho a mao ler escanear",go:"inserir",
