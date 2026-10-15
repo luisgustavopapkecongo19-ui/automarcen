@@ -1,0 +1,84 @@
+<!--# AutoMarcen: molde da página. O tools/build.py troca cada #include pelo arquivo e monta as versões (veja o começo do build.py).-->
+<!--#if app-->
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!--#else-->
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!--#endif-->
+<title>AutoMarcen</title>
+<meta name="theme-color" content="#15181d">
+<meta name="mobile-web-app-capable" content="yes">
+<!--#if app-->
+<meta name="description" content="AutoMarcen: projeto de marcenaria no celular e no tablet. Desenho, 3D, lista de peças, plano de corte e orçamento.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<!--#else-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!--#endif-->
+<style>
+<!--#include estilo/base.css-->
+<!--#include estilo/topo.css-->
+<!--#include estilo/desenho.css-->
+<!--#include estilo/painel.css-->
+<!--#include estilo/3d.css-->
+<!--#include estilo/paginas.css-->
+<!--#include estilo/folhas.css-->
+<!--#include estilo/ajuda.css-->
+<!--#include estilo/toque.css-->
+</style>
+<!--#include tela.html-->
+<script>
+<!--# carrega three.js (3D) e jsPDF só quando precisa-->
+<!--#include js/bibliotecas.js-->
+<!--# funções pequenas, materiais e cores (início do núcleo puro, sem tela)-->
+<!--#include js/nucleo/util.js-->
+<!--# geometria de cada módulo: caixa, prateleiras, portas, gavetas-->
+<!--#include js/nucleo/geometria.js-->
+<!--# plano de corte (encaixe das peças nas chapas)-->
+<!--#include js/nucleo/plano-corte.js-->
+<!--# arquivos ZIP e DXF (fim do núcleo puro)-->
+<!--#include js/nucleo/zip-dxf.js-->
+<!--# projeto novo, conjuntos prontos, carregar e migrar dados antigos-->
+<!--#include js/projeto.js-->
+<!--# salvar neste aparelho e na conta Claude; botão de salvar-->
+<!--#include js/salvar.js-->
+<!--# formas do desenho, limites, toque em itens, mover e girar-->
+<!--#include js/desenho/util.js-->
+<!--# desfazer, refazer e incluir itens-->
+<!--#include js/desenho/estado.js-->
+<!--# pinta a prancheta 2D-->
+<!--#include js/desenho/canvas.js-->
+<!--# toque, mouse e caneta na prancheta-->
+<!--#include js/desenho/ponteiro.js-->
+<!--# trilho de ferramentas, medidas na tela, cartão do móvel, teclado-->
+<!--#include js/desenho/hud.js-->
+<!--# painel lateral: propriedades do móvel e da parede-->
+<!--#include js/painel.js-->
+<!--# transforma o desenho em móvel-->
+<!--#include js/moveis.js-->
+<!--# janelas, avisos e inserir móvel pronto-->
+<!--#include js/dialogos.js-->
+<!--# montar móvel por foto do croqui ou por frase (voz ou texto)-->
+<!--#include js/foto-voz.js-->
+<!--# exportar arquivos: imagem, SVG, DXF, CSV e projeto-->
+<!--#include js/exportar.js-->
+<!--# abas Peças e Orçamento: lista de peças, corte, preço-->
+<!--#include js/pecas-corte-orcamento.js-->
+<!--# aprovar pelo WhatsApp e 3D para o cliente-->
+<!--#include js/cliente.js-->
+<!--# aba 3D-->
+<!--#include js/3d.js-->
+<!--# troca entre Desenho, 3D, Peças e Orçamento-->
+<!--#include js/abas.js-->
+<!--# ajuda: guia embutido e chat com o Claude-->
+<!--#include js/chat.js-->
+<!--# aparência (tema e letras) e abertura do app-->
+<!--#include js/inicio.js-->
+</script>
+
+<!--#if app-->
+<script src="app.js" defer></script>
+<!--#endif-->
+</body></html>

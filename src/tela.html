@@ -1,0 +1,105 @@
+
+<div class="app">
+  <header class="top">
+    <div class="brand" title="AutoMarcen" role="img" aria-label="AutoMarcen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V4h16"/><path d="M8 20V8h12v12z"/><path d="M8 14h12M14 8v12"/></svg></div>
+    <button class="proj" id="bProj" aria-label="Projetos"><span id="projName">Projeto</span><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="m6 9 6 6 6-6"/></svg></button>
+    <nav class="views" role="tablist" aria-label="Modo">
+      <button role="tab" data-view="draw" aria-selected="true">Desenho</button>
+      <button role="tab" data-view="3d" aria-selected="false">3D</button>
+      <button role="tab" data-view="parts" aria-selected="false"><span class="lgl">Peças e corte</span><span class="shl">Corte</span></button>
+      <button role="tab" data-view="quote" aria-selected="false">Orçamento</button>
+    </nav>
+    <div class="acts">
+      <button class="savest" id="bSave" data-s="busy" aria-label="Salvar projeto" title="Salvar"><svg class="i" viewBox="0 0 24 24" id="saveIco"></svg><span id="saveTxt">Salvar</span></button>
+      <button class="ib" id="bUndo" aria-label="Desfazer" title="Desfazer (Ctrl+Z)"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+      <button class="ib" id="bRedo" aria-label="Refazer" title="Refazer (Ctrl+Y)"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+      <button class="ib" id="bLook" aria-label="Aparência: tema e tamanho das letras" title="Aparência"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17A8.5 8.5 0 0 0 12 3.5z" fill="currentColor"/></svg></button>
+      <button class="ib helpb" id="bChat" aria-label="Tirar dúvidas" title="Tirar dúvidas" aria-controls="help" aria-expanded="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg></button>
+      <a class="ib" id="bHelp" href="https://claude.ai/artifact/LoxsKJPStynxu7bheZw574" target="_blank" rel="noopener" aria-label="Guia: como usar" title="Guia: como usar"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6M12 17.2v.1"/></svg></a>
+      <button class="ib" id="bExport" aria-label="Exportar" title="Exportar"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></button>
+      <button class="ib" id="bMore" aria-label="Mais opções" aria-haspopup="menu" aria-expanded="false" title="Mais opções"><svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/></svg></button>
+    </div>
+    <div class="more" id="moreMenu" role="menu" hidden>
+      <button role="menuitem" data-m="look"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17A8.5 8.5 0 0 0 12 3.5z" fill="currentColor"/></svg>Aparência</button>
+      <button role="menuitem" data-m="export"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Exportar</button>
+      <button role="menuitem" data-m="proj"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h6l2 2h8v11H4z"/></svg>Projetos</button>
+      <a role="menuitem" href="https://claude.ai/artifact/LoxsKJPStynxu7bheZw574" target="_blank" rel="noopener" data-m="guide"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6M12 17.2v.1"/></svg>Guia: como usar</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- DESENHO -->
+    <section class="view" id="v-draw">
+      <nav class="rail" id="rail" aria-label="Ferramentas"></nav>
+      <div class="stage" id="stage">
+        <canvas id="cv" aria-label="Prancheta de desenho"></canvas>
+        <div class="hud" id="hud">
+          <span class="msg" id="msg"></span>
+          <span class="rd" id="rd"></span>
+          <span class="num" id="numBox" hidden><input id="numIn" inputmode="decimal" autocomplete="off" placeholder="valor" aria-label="Valor numérico"></span>
+          <span id="hudBtns"></span>
+        </div>
+        <div class="ctx" id="ctx" hidden></div>
+        <div class="status" id="statusBar">
+          <button class="chip ur only-s" id="bUndo2" aria-label="Desfazer"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+          <button class="chip ur only-s" id="bRedo2" aria-label="Refazer"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+          <span class="chip hide-m" id="coords">X 0 · Y 0</span>
+          <button class="chip" id="tGrid" aria-pressed="true" title="Encaixar na grade (F9)">GRADE</button>
+          <button class="chip" id="tOsnap" aria-pressed="true" title="Encaixar em pontos dos objetos (F3)">OBJ</button>
+          <button class="chip" id="tOrtho" aria-pressed="false" title="Ortogonal (F8)">ORTO</button>
+          <button class="chip" id="tInt" aria-pressed="false" title="Mostrar o interior dos móveis, sem as portas">INTERNO</button>
+          <button class="chip" id="tScale" title="Escala da grade"></button>
+          <span class="spacer"></span>
+          <button class="chip" id="bFit" title="Ajustar à tela (Z)">AJUSTAR</button>
+          <button class="chip only-m" id="bPanel" aria-pressed="false">PAINEL</button>
+        </div>
+      </div>
+      <aside class="side" id="side" aria-label="Painel">
+        <div class="ptabs" role="tablist">
+          <button role="tab" data-ptab="props" aria-selected="true">Propriedades</button>
+          <button role="tab" data-ptab="layers" aria-selected="false">Camadas</button>
+          <button class="ib x" id="bClosePanel" aria-label="Fechar painel"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div>
+        <div class="pbody" id="pbody"></div>
+      </aside>
+    </section>
+
+    <!-- 3D -->
+    <section class="view" id="v-3d" hidden>
+      <div class="stage">
+        <canvas id="c3d" aria-label="Visualização 3D"></canvas>
+        <div class="float" style="top:12px;left:12px">
+          <button class="btn sm" data-cam="front">Frente</button>
+          <button class="btn sm" data-cam="iso">3/4</button>
+          <button class="btn sm" data-cam="top">Topo</button>
+        </div>
+        <div class="float" style="top:12px;right:12px">
+          <button class="btn sm pri" id="bOpen">Abrir portas e gavetas</button>
+        </div>
+        <div class="empty" id="e3d" hidden><div id="e3dBody"></div></div>
+        <div class="banner3d" id="b3d" hidden><p>As linhas do desenho aparecem na parede. Para virar móvel com portas e gavetas, use <b>Gerar móvel</b>.</p><button class="btn pri sm" data-go="conv">Gerar do desenho</button></div>
+      </div>
+    </section>
+
+    <!-- PEÇAS -->
+    <section class="view" id="v-parts" hidden><div class="page"><div class="wrap" id="partsWrap"></div></div></section>
+
+    <!-- ORÇAMENTO -->
+    <section class="view" id="v-quote" hidden><div class="page"><div class="wrap" id="quoteWrap"></div></div></section>
+  </main>
+</div>
+<aside class="help" id="help" aria-label="Ajuda" aria-hidden="true">
+  <div class="hhead">
+    <div class="av"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/></svg></div>
+    <div class="tt"><b>Tire suas dúvidas</b><small id="hMode">Pergunte como fazer qualquer coisa no AutoMarcen</small></div>
+    <button class="ib" id="hReset" aria-label="Nova conversa" title="Nova conversa"><svg class="i" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v5h5"/></svg></button>
+    <button class="ib" id="hClose" aria-label="Fechar ajuda"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div class="hlog" id="hLog" aria-live="polite"></div>
+  <form class="hform" id="hForm">
+    <textarea id="hIn" rows="1" placeholder="Escreva sua dúvida…" aria-label="Sua dúvida" enterkeyhint="send"></textarea>
+    <button class="btn pri" id="hSend" type="submit" aria-label="Enviar"><svg class="i" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+  </form>
+</aside>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+

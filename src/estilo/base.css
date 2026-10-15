@@ -1,0 +1,34 @@
+/* Layout: estação CAD de tela única — barra superior com abas (Desenho, 3D, Peças, Orçamento); no Desenho, trilho de ferramentas, prancheta e painel de propriedades */
+:root{
+  --bg:#f3f4f6; --surface:#ffffff; --surface-2:#f1f2f5; --surface-3:#e8eaee;
+  --fg:#15181c; --muted:#646a74; --line:#e3e5e9; --line-2:#cdd1d8;
+  --accent:#e2580b; --accent-fg:#ffffff; --accent-soft:#fdeee4;
+  --ok:#15803d; --warn:#b45309; --danger:#cf2e22;
+  --cv-bg:#fbfbfc; --cv-minor:#eef0f3; --cv-major:#dfe2e7; --cv-ink:#1a1d22; --cv-axis:#b9bfc8; --snap:#0e9f6e; --win:#2563eb;
+  --font:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --shadow:0 1px 2px rgba(16,20,26,.06),0 6px 20px rgba(16,20,26,.08);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-ui="light"]){
+  --bg:#0e1013; --surface:#16191e; --surface-2:#1d2026; --surface-3:#262a31;
+  --fg:#e9ecf0; --muted:#959ca7; --line:#252930; --line-2:#343a43;
+  --accent:#ff7b32; --accent-fg:#1c0d03; --accent-soft:#2d1b10;
+  --ok:#4ade80; --warn:#fbbf24; --danger:#ff6b5e;
+  --cv-bg:#101317; --cv-minor:#191d23; --cv-major:#242931; --cv-ink:#e7eaef; --cv-axis:#3a414b; --snap:#34d399; --win:#60a5fa;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]:not([data-ui="light"]),:root[data-ui="dark"]{
+  --bg:#0e1013; --surface:#16191e; --surface-2:#1d2026; --surface-3:#262a31;
+  --fg:#e9ecf0; --muted:#959ca7; --line:#252930; --line-2:#343a43;
+  --accent:#ff7b32; --accent-fg:#1c0d03; --accent-soft:#2d1b10;
+  --ok:#4ade80; --warn:#fbbf24; --danger:#ff6b5e;
+  --cv-bg:#101317; --cv-minor:#191d23; --cv-major:#242931; --cv-ink:#e7eaef; --cv-axis:#3a414b; --snap:#34d399; --win:#60a5fa;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;overflow:hidden;background:var(--bg);color:var(--fg);font:calc(14px*var(--fs,1))/1.45 var(--font);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.app{height:100%;display:grid;grid-template-rows:auto 1fr}
+

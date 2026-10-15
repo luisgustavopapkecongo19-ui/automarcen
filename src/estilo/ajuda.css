@@ -1,0 +1,27 @@
+/* ajuda: chat com o assistente */
+.ib.helpb{color:var(--accent)}
+@media (max-width:440px){#bHelp{display:none}}
+.help{position:fixed;top:0;right:0;bottom:0;contain:strict;will-change:transform;width:min(400px,100%);background:var(--surface);border-left:1px solid var(--line);box-shadow:var(--shadow);z-index:30;display:flex;flex-direction:column;transform:translateX(104%);transition:transform .16s ease-out,visibility 0s .16s;visibility:hidden}
+.help.open{transform:none;visibility:visible;transition:transform .16s ease-out}
+@media (max-width:700px){.help{top:auto;left:0;width:100%;height:86%;border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;transform:translateY(104%)}}
+.hhead{display:flex;align-items:center;gap:10px;padding:12px 12px 10px 16px;border-bottom:1px solid var(--line)}
+.hhead .av{width:32px;height:32px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.hhead .tt{flex:1;min-width:0}
+.hhead b{display:block;font-size:calc(15px*var(--fs,1))}
+.hhead small{display:block;font-size:calc(12px*var(--fs,1));color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hlog{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;-webkit-user-select:text;user-select:text;overscroll-behavior:contain}
+.msgb{max-width:90%;padding:9px 12px;border-radius:14px;font-size:calc(14px*var(--fs,1));line-height:1.5;overflow-wrap:anywhere}
+.msgb.me{align-self:flex-end;background:var(--accent);color:var(--accent-fg);border-bottom-right-radius:4px;white-space:pre-wrap}
+.msgb.bot{align-self:flex-start;background:var(--surface-2);border-bottom-left-radius:4px}
+.msgb.bot p{margin:0 0 6px}.msgb.bot p:last-child{margin:0}
+.msgb.bot ol,.msgb.bot ul{margin:4px 0 6px;padding-left:20px;display:grid;gap:3px}
+.msgb.bot code{font:500 calc(12.5px*var(--fs,1)) var(--mono);background:var(--surface);padding:1px 5px;border-radius:5px}
+.msgb.bot .src{display:block;margin-top:6px;font-size:calc(11px*var(--fs,1));color:var(--muted)}
+.msgb.bot .think{color:var(--muted)}
+.hacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.hsug{display:flex;flex-wrap:wrap;gap:6px}
+.hsug .pill{text-align:left}
+.hform{display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.hform textarea{flex:1;resize:none;min-height:42px;max-height:120px;font:calc(15px*var(--fs,1))/1.4 var(--font);padding:10px 12px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface);color:var(--fg)}
+.hform .btn{height:42px}
+@media (prefers-reduced-motion:reduce){.help{transition:none}}
