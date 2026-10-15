@@ -8,7 +8,7 @@ def files(P):
     return sorted(str(f.relative_to(P)) for f in P.rglob("*") if f.is_file()
                   and f.name not in ("sw.js", "README.md", ".nojekyll", ".gitignore")
                   and not SKIP_DIRS & set(f.relative_to(P).parts)
-                  and not f.name.startswith("LICENSE") and not f.name.endswith(".txt"))
+                  and not f.name.startswith("LICENSE") and not f.name.endswith((".txt", ".rules")))
 
 def version(P):
     h = hashlib.sha256()

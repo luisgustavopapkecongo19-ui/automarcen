@@ -22,7 +22,7 @@ $("#bLook").onclick=showLook;
 function closeMore(){$("#moreMenu").hidden=true; $("#bMore").setAttribute("aria-expanded","false")}
 $("#bMore").onclick=e=>{e.stopPropagation(); const m=$("#moreMenu"); m.hidden=!m.hidden; $("#bMore").setAttribute("aria-expanded",String(!m.hidden))};
 $("#moreMenu").addEventListener("click",e=>{const a=e.target.closest("[data-m]")?.dataset.m; if(!a) return; closeMore();
-  if(a==="look") showLook(); if(a==="export") showExport(); if(a==="proj") $("#bProj").click();
+  if(a==="look") showLook(); if(a==="export") showExport(); if(a==="proj") $("#bProj").click(); if(a==="org") showOrg();
 //#if app
   if(a==="acct") showAcct();
 //#endif

@@ -18,6 +18,7 @@ Sem conta, dá para levar um projeto com **Exportar → Projeto (.json)** e depo
 - Projeto Firebase `automarcen`: Authentication (Google e E-mail/senha) e Firestore em `southamerica-east1`.
 - Cada pessoa grava só em `users/{uid}/projetos`; as regras do Firestore bloqueiam o resto.
 - A configuração do app web fica em `src/js/conta.js` (não é senha). O SDK do Firebase 10.14.1 fica em `vendor/firebase/`, para o app abrir sem internet.
+- As regras do Firestore ficam em `firestore.rules`; cole no console do Firebase (Firestore Database → Regras) sempre que mudarem.
 - Só a versão instalável usa o Firebase; a do claude.ai continua salvando na conta Claude.
 
 ## Código
@@ -44,6 +45,7 @@ Ele junta as partes e gera as duas versões:
 | `src/js/painel.js`, `moveis.js` | painel do móvel e desenho virando móvel |
 | `src/js/foto-voz.js` | montar móvel por foto ou por frase |
 | `src/js/exportar.js`, `pecas-corte-orcamento.js`, `cliente.js` | arquivos, peças, corte, orçamento e envio ao cliente |
+| `src/js/organizador.js` | clientes e relatórios (por cliente, por mês, materiais) e Exportar tudo em JSON |
 | `src/js/3d.js`, `abas.js`, `chat.js`, `inicio.js` | 3D, troca de abas, ajuda e abertura do app |
 | `src/pwa/app.js` | só da versão instalável: instalar, atualizar e guardar sem internet |
 
