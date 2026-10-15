@@ -22,7 +22,11 @@ $("#bLook").onclick=showLook;
 function closeMore(){$("#moreMenu").hidden=true; $("#bMore").setAttribute("aria-expanded","false")}
 $("#bMore").onclick=e=>{e.stopPropagation(); const m=$("#moreMenu"); m.hidden=!m.hidden; $("#bMore").setAttribute("aria-expanded",String(!m.hidden))};
 $("#moreMenu").addEventListener("click",e=>{const a=e.target.closest("[data-m]")?.dataset.m; if(!a) return; closeMore();
-  if(a==="look") showLook(); if(a==="export") showExport(); if(a==="proj") $("#bProj").click()});
+  if(a==="look") showLook(); if(a==="export") showExport(); if(a==="proj") $("#bProj").click();
+//#if app
+  if(a==="acct") showAcct();
+//#endif
+});
 addEventListener("click",e=>{if(!$("#moreMenu").hidden&&!e.target.closest("#moreMenu,#bMore")) closeMore()});
 addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#moreMenu").hidden) closeMore()});
 $("#bUndo2").onclick=()=>doUndo(); $("#bRedo2").onclick=()=>doRedo();

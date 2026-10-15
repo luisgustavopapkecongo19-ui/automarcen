@@ -12,20 +12,29 @@ async function flushSave(){
 }
 const docId=pid=>"p-"+String(pid).replace(/[^A-Za-z0-9_-]/g,"");
 async function initCloud(){
+//#if app
+  return fbInit();
+//#else
   try{
     if(!(window.claude&&window.claude.use)) throw 0;
     const [db,user]=await Promise.all([window.claude.use("db"),window.claude.use("user")]);
     if(!db||!user) throw 0;
     const [id,canW]=await Promise.all([user.id(),user.can("data.write")]);
     if(!id||canW===false) throw 0;
-    SV.col=db.collection("data/users/"+id); SV.cloud="on"; updSave();
-    const t=setTimeout(()=>{if(!SV.synced){SV.synced=true; markForUpload(); cloudFlush()}},8000);
-    SV.col.onSnapshot(snap=>{
-      applyRemote(snap);
-      if(!SV.synced&&!snap.metadata.fromCache){SV.synced=true; clearTimeout(t); markForUpload(); cloudFlush()}
-      updSave();
-    },()=>{SV.cloud="off"; updSave()});
+    cloudAttach(db.collection("data/users/"+id));
   }catch(_){SV.cloud="off"; updSave()}
+//#endif
+}
+/* liga a pasta da conta: recebe as mudanças e, na primeira resposta do servidor, sobe o que só existe aqui */
+function cloudAttach(col){
+  SV.col=col; SV.cloud="on"; SV.synced=false; updSave();
+  const t=setTimeout(()=>{if(SV.col===col&&!SV.synced){SV.synced=true; markForUpload(); cloudFlush()}},8000);
+  return col.onSnapshot(snap=>{
+    if(SV.col!==col) return;
+    applyRemote(snap);
+    if(!SV.synced&&!snap.metadata.fromCache){SV.synced=true; clearTimeout(t); markForUpload(); cloudFlush()}
+    updSave();
+  },()=>{clearTimeout(t); if(SV.col===col){SV.cloud="off"; SV.col=null; updSave()}});
 }
 function markForUpload(){
   for(const p of store.projects){ if(p.sample) continue; const m=SV.remote[p.id]; if(!m||(p.updated||0)>(m.updated||0)) SV.dirty.add(p.id) }
@@ -76,8 +85,8 @@ async function cloudFlush(){
     SV.err=null;
   }catch(e){
     const code=(e&&e.code)||"unavailable"; SV.err=code;
-    if(["invalid_argument","not_granted","revoked","capability_disabled","capability_removed","transform_error"].includes(code)){SV.cloud="off"; SV.err=null}
-    else if(code!=="quota_exceeded"&&!SV.retryT) SV.retryT=setTimeout(()=>{SV.retryT=0; cloudFlush()},4000+Math.random()*4000);
+    if(["invalid_argument","not_granted","revoked","capability_disabled","capability_removed","transform_error","permission-denied","unauthenticated","invalid-argument"].includes(code)){SV.cloud="off"; SV.err=null}
+    else if(code!=="quota_exceeded"&&code!=="resource-exhausted"&&!SV.retryT) SV.retryT=setTimeout(()=>{SV.retryT=0; cloudFlush()},4000+Math.random()*4000);
   }finally{
     SV.busy=false; updSave();
     if(SV.again){SV.again=false; if(SV.dirty.size||SV.dead.size) cloudFlush()}
@@ -111,10 +120,14 @@ function saveState(){
 //#endif
   if(SV.cloud==="on"){
     if(SV.err) return ["err","Não salvou","A conta não respondeu. Toque para tentar de novo"];
+//#if app
+    if(SV.synced) return ["ok","Salvo","Salvo na sua conta AutoMarcen. Aparece nos seus outros aparelhos"];
+//#else
     if(SV.synced) return ["ok","Salvo","Salvo na sua conta Claude. Aparece nos seus outros aparelhos"];
+//#endif
   }
 //#if app
-  if(SV.local) return ["local","Salvo no aparelho","Salvo neste aparelho. Para levar a outro aparelho, use Exportar → Projeto (.json)"];
+  if(SV.local) return ["local","Salvo no aparelho","Salvo neste aparelho. Para abrir em outros aparelhos, entre na sua conta (menu ⋯ → Entrar na conta)"];
 //#else
   if(SV.local) return ["local","Salvo no aparelho","Salvo neste navegador, só neste aparelho"];
 //#endif
@@ -140,6 +153,9 @@ async function saveNow(){
   else if(SV.cloud==="on"&&SV.synced&&!SV.err&&!SV.dirty.has(P.id)) toast("Projeto salvo na sua conta");
   else if(SV.cloud==="on"&&!SV.synced) toast(SV.local?"Salvo no aparelho. Conectando à sua conta…":"Conectando à sua conta…");
   else if(SV.cloud==="on"&&SV.err) toast(SV.local?"Salvo no aparelho. A conta não respondeu, nova tentativa em instantes":"A conta não respondeu. Tente de novo em instantes");
+//#if app
+  else if(SV.local&&FB.known&&!FB.user) toast("Salvo neste aparelho. Para abrir em outros aparelhos, entre na conta: menu ⋯ → Entrar na conta");
+//#endif
   else if(SV.local) toast("Projeto salvo neste aparelho");
   else showSaveHelp();
 }
