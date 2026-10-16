@@ -1033,13 +1033,16 @@ const FB_CFG={
   messagingSenderId:"1035263726882",
   appId:"1:1035263726882:web:3a259b672c3913fd9d017b"
 };
-const FB={auth:null,db:null,user:null,unsub:null,ready:null,watching:false,known:false};
+// chave do site do reCAPTCHA Enterprise para o App Check (protege a IA). Vazia = App Check desligado
+const FB_RECAPTCHA="";
+const FB={auth:null,db:null,user:null,unsub:null,ready:null,watching:false,known:false,appCheck:null};
 function fbLoad(){
   if(FB.ready) return FB.ready;
   FB.ready=loadScript("vendor/firebase/app.js")
-    .then(()=>Promise.all([loadScript("vendor/firebase/auth.js"),loadScript("vendor/firebase/firestore.js")]))
+    .then(()=>Promise.all([loadScript("vendor/firebase/auth.js"),loadScript("vendor/firebase/firestore.js"),FB_RECAPTCHA?loadScript("vendor/firebase/app-check.js"):0]))
     .then(()=>{
       if(!firebase.apps.length) firebase.initializeApp(FB_CFG);
+      if(FB_RECAPTCHA&&!FB.appCheck) try{FB.appCheck=firebase.appCheck(); FB.appCheck.activate(new firebase.appCheck.ReCaptchaEnterpriseProvider(FB_RECAPTCHA),true)}catch(e){FB.appCheck=null; console.warn("App Check",e)}
       FB.auth=firebase.auth(); FB.auth.languageCode="pt-BR";
       FB.db=firebase.firestore();
     }).catch(e=>{FB.ready=null; throw e});
@@ -1119,6 +1122,101 @@ function showAcct(){
     $("#aP",el).addEventListener("keydown",e=>{if(e.key==="Enter") $("[data-in]",el).click()});
   },"acct");
 }
+/* ===== IA da versão instalável: Gemini pelo Firebase AI Logic. Só na versão instalável; a do claude.ai usa o Claude =====
+   Imita o "sample" do claude.ai (mesmas chamadas e códigos de erro), então o chat e a foto/voz usam o mesmo código nas duas versões.
+   Regras: só quem entrou na conta usa a IA; cada pessoa tem IA_LIMITE pedidos por dia, contados em users/{uid}/uso/{dia}
+   (firestore.rules confere a conta). O App Check (reCAPTCHA Enterprise) liga sozinho quando FB_RECAPTCHA (conta.js) tiver a chave. */
+const IA_MODELOS={quick:"gemini-3.5-flash-lite",default:"gemini-3.5-flash"};
+const IA_LIMITE=50;
+const IA_URL=m=>`https://firebasevertexai.googleapis.com/v1beta/projects/${FB_CFG.projectId}/models/${m}:`;
+const iaErr=(code,msg)=>Object.assign(new Error(msg||code),{code});
+const iaDia=()=>{const d=new Date(); return `${d.getUTCFullYear()}-${d.getUTCMonth()+1}-${d.getUTCDate()}`}; // o mesmo dia que as regras calculam (UTC)
+async function iaConta(){
+  // gasta um dos pedidos do dia; recusa quando acabou
+  const ref=FB.db.collection("users").doc(FB.user.uid).collection("uso").doc(iaDia());
+  try{
+    await FB.db.runTransaction(async t=>{
+      const s=await t.get(ref), n=s.exists?(s.data().n|0):0;
+      if(n>=IA_LIMITE) throw iaErr("quota");
+      if(s.exists) t.update(ref,{n:n+1}); else t.set(ref,{n:1});
+    });
+  }catch(e){ if(e.code==="quota") throw e; if(e.code==="permission-denied") throw iaErr("quota"); throw iaErr("network",e.message) }
+}
+async function iaHeaders(){
+  const h={"Content-Type":"application/json","x-goog-api-key":FB_CFG.apiKey,"x-goog-api-client":"gl-js/automarcen fire/10.14.1"};
+  try{h.Authorization="Firebase "+await FB.user.getIdToken()}catch(_){}
+  if(FB.appCheck){try{const t=await FB.appCheck.getToken(); if(t&&t.token) h["X-Firebase-AppCheck"]=t.token}catch(_){}}
+  return h;
+}
+// foto do celular (3 a 8 MB) vira JPEG de até 1600 px: lê igual e sobe bem mais rápido
+async function iaImagem(f){
+  try{
+    const bmp=await createImageBitmap(f), k=Math.min(1,1600/Math.max(bmp.width,bmp.height));
+    const c=document.createElement("canvas"); c.width=Math.round(bmp.width*k); c.height=Math.round(bmp.height*k);
+    c.getContext("2d").drawImage(bmp,0,0,c.width,c.height); bmp.close&&bmp.close();
+    return {mimeType:"image/jpeg",data:c.toDataURL("image/jpeg",.85).split(",")[1]};
+  }catch(_){
+    if(!/^image\/(jpeg|png|webp|heic|heif)$/.test(f.type)) throw iaErr("image_rejected");
+    const b=await new Promise((ok,bad)=>{const r=new FileReader(); r.onload=()=>ok(r.result); r.onerror=bad; r.readAsDataURL(f)});
+    return {mimeType:f.type,data:String(b).split(",")[1]};
+  }
+}
+// mensagens no jeito do claude.ai ({role,content}) → "contents" do Gemini (user/model, sem dois seguidos do mesmo lado)
+function iaContents(msgs){
+  const out=[];
+  for(const m of msgs){
+    const role=m.role==="assistant"?"model":"user", text=String(m.content||"");
+    const last=out[out.length-1];
+    if(last&&last.role===role) last.parts[0].text+="\n\n"+text; else out.push({role,parts:[{text}]});
+  }
+  return out;
+}
+const iaTexto=j=>((((j||{}).candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||"").join("");
+async function iaPedir(contents,opts){
+  opts=opts||{};
+  if(!FB.user) throw iaErr("login");
+  if(!online()) throw iaErr("network");
+  if(IA.off) throw iaErr("off"); // o Firebase já recusou nesta abertura (App Check ou IA desligada): não gasta pedido do dia à toa
+  await iaConta();
+  const model=IA_MODELOS[opts.modelTier]||IA_MODELOS.quick, stream=!!opts.onText;
+  const body={contents,generationConfig:Object.assign({temperature:.4},opts.json?{responseMimeType:"application/json"}:{})};
+  let res;
+  try{ res=await fetch(IA_URL(model)+(stream?"streamGenerateContent?alt=sse":"generateContent"),{method:"POST",headers:await iaHeaders(),body:JSON.stringify(body),signal:opts.signal}) }
+  catch(e){ if(e&&e.name==="AbortError") throw iaErr("cancelled"); throw iaErr("network",e&&e.message) }
+  if(!res.ok){
+    let msg=""; try{msg=JSON.stringify(await res.json())}catch(_){}
+    console.warn("IA",res.status,msg);
+    if(res.status===401||res.status===403) IA.off=true;
+    throw iaErr(res.status===429?"rate_limited":res.status===400&&/image|inline/i.test(msg)?"image_rejected":res.status===401||res.status===403?"off":"error",msg);
+  }
+  if(!stream){ const j=await res.json(); return iaTexto(j) }
+  // resposta aos poucos (SSE): "data: {...}" por pedaço
+  const rd=res.body.getReader(), dec=new TextDecoder(); let buf="", text="";
+  try{
+    for(;;){
+      const {done,value}=await rd.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      let i; while((i=buf.indexOf("\n"))>=0){
+        const line=buf.slice(0,i).trim(); buf=buf.slice(i+1);
+        if(!line.startsWith("data:")) continue;
+        try{ text+=iaTexto(JSON.parse(line.slice(5))); opts.onText({text}) }catch(_){}
+      }
+    }
+  }catch(e){ if(e&&e.name==="AbortError") throw Object.assign(iaErr("cancelled"),{text}); throw iaErr("network") }
+  return text;
+}
+// o "sample" da versão instalável
+async function IA(msgs,opts){ return {text:await iaPedir(iaContents(msgs),opts)} }
+IA.json=async(prompt,opts)=>{
+  opts=opts||{};
+  const parts=[];
+  for(const f of opts.images||[]) parts.push({inlineData:await iaImagem(f)});
+  parts.push({text:prompt});
+  const t=await iaPedir([{role:"user",parts}],Object.assign({},opts,{json:true,onText:null}));
+  try{return JSON.parse(t)}catch(_){ const m=t.match(/\{[\s\S]*\}/); if(m) return JSON.parse(m[0]); throw iaErr("error","JSON") }
+};
+IA.limits=async()=>({images:{mediaTypes:["image/*"]}});
+IA.gemini=true;
 /* ===================== utilidades de desenho ===================== */
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -2238,15 +2336,16 @@ function specResult(el,spec,note){
   $("[data-spins]",r).onclick=()=>insertSpec(spec);
 }
 async function showPhoto(){
-  if(!H.sample) return specDlg("Croqui por foto",`<p>A leitura de foto usa o Claude e só funciona na versão do AutoMarcen dentro do claude.ai. Nesta versão instalada ela fica desligada.</p><p class="note">Você pode descrever o móvel em <b>Falar ou escrever</b>, que funciona no aparelho, até sem internet.</p><div class="row"><button class="btn" data-x>Fechar</button><button class="btn pri" data-voice>Falar ou escrever</button></div>`,el=>{$("[data-x]",el).onclick=closeDlg; $("[data-voice]",el).onclick=showVoice});
+  if(!FB.user) return specDlg("Croqui por foto",`<p>A leitura de foto usa a IA e funciona com a conta entrada. Entre com o Google ou com e-mail e senha para usar.</p><p class="note">Sem conta, você pode descrever o móvel em <b>Falar ou escrever</b>, que funciona no aparelho, até sem internet.</p><div class="row"><button class="btn" data-voice>Falar ou escrever</button><button class="btn pri" data-in>Entrar na conta</button></div>`,el=>{$("[data-in]",el).onclick=showAcct; $("[data-voice]",el).onclick=showVoice});
+  const QUEM="A IA", USO="Usa um dos seus pedidos de IA do dia.";
   let caps=null; try{caps=H.sample&&H.sample.limits?await H.sample.limits():null}catch(_){}
   if(!online()) return specDlg("Croqui por foto",`<p>A leitura da foto precisa de internet. Sem sinal, use <b>Falar ou escrever</b>, que funciona no aparelho.</p><div class="row"><button class="btn" data-x>Fechar</button><button class="btn pri" data-voice>Falar ou escrever</button></div>`,el=>{$("[data-x]",el).onclick=closeDlg; $("[data-voice]",el).onclick=showVoice});
   if(!caps||!caps.images) return specDlg("Croqui por foto",`<p>A leitura de foto usa o Claude e precisa estar liberada para a sua conta. Nesta tela ela não está disponível.</p><p class="note">Você pode descrever o móvel em <b>Falar ou escrever</b>.</p><div class="row"><button class="btn" data-x>Fechar</button><button class="btn pri" data-voice>Falar ou escrever</button></div>`,el=>{$("[data-x]",el).onclick=closeDlg; $("[data-voice]",el).onclick=showVoice});
-  specDlg("Croqui por foto",`<p>Tire uma foto do desenho no papel (de frente, com boa luz e as medidas legíveis). O Claude lê o croqui e monta o móvel com as medidas.</p>
+  specDlg("Croqui por foto",`<p>Tire uma foto do desenho no papel (de frente, com boa luz e as medidas legíveis). ${QUEM} lê o croqui e monta o móvel com as medidas.</p>
     <label class="btn pri photo"><input type="file" id="spFile" accept="${esc((caps.images.mediaTypes||["image/jpeg","image/png"]).join(","))}" hidden>Escolher ou tirar foto</label>
     <img id="spImg" alt="Foto do croqui" hidden class="spimg">
     <div id="spRes"></div>
-    <p class="note">Usa o seu uso do Claude. Confira sempre as medidas antes de cortar.</p>
+    <p class="note">${USO} Confira sempre as medidas antes de cortar.</p>
     <div class="row"><button class="btn ghost" data-x>Fechar</button></div>`,el=>{
     $("[data-x]",el).onclick=closeDlg;
     $("#spFile",el).onchange=async e=>{
@@ -2257,7 +2356,7 @@ async function showPhoto(){
         const spec=await aiSpec(`A imagem é a foto de um croqui de marcenaria feito à mão (papel quadriculado ou liso), com medidas escritas. Identifique cada móvel desenhado, as medidas externas e a divisão em vãos (portas, gavetas, nichos), da esquerda para a direita. Se houver vista de frente e de lado, use a de lado para a profundidade.\n${SPEC_FORMAT}`,{images:[f],modelTier:"default"});
         if(openDlg&&openDlg.contains(r)) specResult(el,spec);
       }catch(err){
-        const c=err&&err.code; r.innerHTML=`<p class="warn">${c==="not_granted"?"A leitura foi recusada. Para usar, permita o uso do Claude quando ele pedir.":c==="image_rejected"?"Essa foto não pôde ser lida. Tente outra, em JPG ou PNG.":c==="rate_limited"?"Muitos pedidos agora. Tente de novo em instantes.":"Não consegui ler a foto agora. Tente de novo ou use Falar ou escrever."}</p>`;
+        const c=err&&err.code; r.innerHTML=`<p class="warn">${c==="not_granted"?"A leitura foi recusada. Para usar, permita o uso do Claude quando ele pedir.":c==="image_rejected"?"Essa foto não pôde ser lida. Tente outra, em JPG ou PNG.":c==="rate_limited"?"Muitos pedidos agora. Tente de novo em instantes.":c==="quota"?"Você já usou os pedidos de IA de hoje. Amanhã volta; enquanto isso, use Falar ou escrever.":c==="login"?"Entre na conta para usar a leitura de foto.":c==="off"?"A leitura de foto ainda não está liberada neste app. Enquanto isso, use Falar ou escrever.":"Não consegui ler a foto agora. Tente de novo ou use Falar ou escrever."}</p>`;
       }
     };
   });
@@ -2284,7 +2383,7 @@ function showVoice(){
     const go=async()=>{
       const txt=$("#spTxt",el).value.trim(); if(!txt) return;
       const loc=parseSpeech(txt), r=$("#spRes",el), nt=txt.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""), kinds=(nt.match(/\b(balcao|aereo|armario|gaveteiro|roupeiro|estante|comoda|escrivaninha|guarda roupa|torre|painel|rack)\b/g)||[]).length, simple=loc&&loc.moveis[0].largura&&kinds<=1&&!/;/.test(nt);
-      if(simple||!H.sample||!online()){ if(loc) specResult(el,loc,!simple&&H.sample&&!online()?"Entendido no aparelho. Para frases com vários móveis, use com internet.":!simple&&!H.sample?"Entendido no aparelho. Se tiver mais de um móvel, descreva um de cada vez.":""); else specResult(el,{moveis:[]}); return }
+      if(simple||!FB.user||!online()){ if(loc) specResult(el,loc,!simple&&!online()?"Entendido no aparelho. Para frases com vários móveis, use com internet.":!simple&&!FB.user?"Entendido no aparelho. Se tiver mais de um móvel, descreva um de cada vez, ou entre na conta para a IA entender a frase toda.":""); else specResult(el,{moveis:[]}); return }
       r.innerHTML=`<p class="note">Montando…</p>`;
       try{const spec=await aiSpec(`Um marceneiro descreveu um ou mais móveis falando (pode ter erros de ditado):\n"""${txt.slice(0,1500)}"""\nMonte os móveis.\n${SPEC_FORMAT}`,{modelTier:"quick"}); specResult(el,spec)}
       catch(_){ if(loc) specResult(el,loc,"Entendido no aparelho."); else r.innerHTML=`<p class="warn">Não entendi. Diga o tipo e as medidas, por exemplo: “balcão de 120 por 60 com duas portas”.</p>` }
@@ -3062,9 +3161,10 @@ function setView(v){
 }
 
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
-const APP_VER="v0.13.2 beta";
+const APP_VER="v0.14 beta";
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
+  {v:"v0.14 beta",items:["Inteligência no app: com a conta entrada, o chat de ajuda responde com a IA do Google (Gemini), com base no guia do AutoMarcen.","Croqui por foto também no app: em Móvel, tire uma foto do desenho no papel e a IA monta o móvel com as medidas. Confira sempre antes de cortar.","Falar ou escrever entende frases com vários móveis quando há internet e a conta está entrada.","Cada conta tem até 50 pedidos de IA por dia. Sem conta ou sem internet, o chat responde pelo guia e Falar ou escrever entende as frases simples no aparelho."]},
   {v:"v0.13.2 beta",items:["Cor do móvel mais fácil de trocar: ao tocar num móvel no celular, o cartão tem o botão Cor, que abre direto nos acabamentos.","No desenho, o móvel mostra a cor escolhida mais forte, também enquanto está selecionado. Antes ele ficava apagado e parecia que a cor não tinha mudado.","Com vários móveis selecionados, dá para trocar o acabamento da caixa e das frentes de todos de uma vez. O antigo Cor desses casos agora se chama Cor das linhas, porque muda só o traço."]},
   {v:"v0.13.1 beta",items:["Tela limpa para quem começa: o primeiro projeto abre vazio, sem móveis de exemplo. Os modelos prontos e os conjuntos continuam no botão Móvel.","Com o projeto vazio, o meio da tela mostra por onde começar.","Os projetos que você já tinha continuam como estavam."]},
   {v:"v0.13 beta",items:["Preços em branco: os projetos novos não vêm mais com preços de exemplo, porque cada região tem um valor. Preencha chapas e ferragens com os preços dos seus fornecedores na aba Orçamento.","O último preço que você digitou de cada item fica guardado neste aparelho, e os próximos projetos já começam com ele.","Enquanto faltar algum preço, o Orçamento mostra o aviso Faltam preços, marca os campos vazios e o total aparece como incompleto. Antes de gerar o PDF, copiar o resumo ou mandar o 3D para o cliente, o AutoMarcen avisa.","Os projetos que você já tinha continuam com os preços que estavam neles."]},
@@ -3154,7 +3254,7 @@ const KB=[
  {id:"cliente",q:"Como mando o orçamento para o cliente aprovar?",k:"cliente mandar enviar pdf whatsapp resumo proposta compartilhar aprovar aprovacao link 3d situacao aprovado recusado",go:"orcamento",
   a:"Na aba **Orçamento**:\n1. Em **Seu WhatsApp**, coloque o seu número. Ele fica guardado.\n2. **Gerar PDF** cria a proposta com 3D, desenho e valores, e com os botões **Aprovar pelo WhatsApp** e **Pedir ajuste**.\n3. **3D para o cliente** salva um arquivo que o cliente abre no celular para girar o móvel, abrir as portas e tocar em **Aprovar**.\n4. **Copiar resumo** copia um texto curto para colar no WhatsApp.\nQuando o cliente responder, marque a **Situação do orçamento** (Enviado, Aprovado ou Recusado). Ela aparece na lista de Projetos."},
  {id:"foto",q:"Dá para montar o móvel a partir de uma foto do croqui?",k:"foto croqui papel camera imagem tirar foto desenho a mao ler escanear",go:"inserir",
-  a:"Sim. Toque em **Móvel** e depois em **Croqui por foto**. Tire ou escolha a foto do desenho no papel, de frente, com boa luz e as medidas legíveis. O Claude lê o croqui e mostra o que entendeu. Confira e toque em **Inserir no projeto**. Precisa de internet e usa o seu uso do Claude, por isso só funciona na versão dentro do claude.ai; na versão instalada, use **Falar ou escrever**. Sempre confira as medidas antes de cortar."},
+  a:"Sim. Toque em **Móvel** e depois em **Croqui por foto**. Tire ou escolha a foto do desenho no papel, de frente, com boa luz e as medidas legíveis. A IA lê o croqui e mostra o que entendeu. Confira e toque em **Inserir no projeto**. Precisa de internet e de estar com a conta entrada (**⋯ → Entrar na conta**). Cada conta tem até 50 pedidos de IA por dia, somando chat, foto e frases. Sempre confira as medidas antes de cortar."},
  {id:"voz",q:"Dá para ditar o móvel por voz?",k:"voz falar ditar ditado microfone audio escrever descrever frase",go:"inserir",
   a:"Sim. Toque em **Móvel** e depois em **Falar ou escrever**. Toque em **Falar** (ou use o microfone do teclado do celular) e diga, por exemplo: “balcão de 147 por 60 com duas portas e três gavetas” ou “aéreo de 120 por 70 a 150 do chão com duas portas”. Confira o que foi entendido e toque em **Inserir no projeto**. Frases simples funcionam até sem internet."},
  {id:"relatorios",q:"Onde vejo quanto vendi por cliente ou por mês?",k:"relatorio relatorios cliente clientes mes mensal vendido vendas faturamento total aprovado materiais chapas exportar tudo backup copia",go:"",
@@ -3180,7 +3280,7 @@ const KB=[
  {id:"novidades",q:"O que mudou na última atualização?",k:"novidades atualizacao versao mudou novo novidade lancamento",
   a:"Depois de cada atualização aparece uma vez a janela **Novidades do AutoMarcen**. Para ver de novo, toque no nome do projeto no topo e, no fim da lista, toque na versão (**AutoMarcen · v0.6 beta · novidades**).\nNa v0.6 entrou esse aviso de novidades. Na v0.5 entraram o chat de ajuda e a abertura mais rápida."},
  {id:"offline",q:"Funciona sem internet?",k:"sem internet offline sinal conexao caiu obra desconectado wifi dados",
-  a:"Sim, na versão instalada (o app do AutoMarcen na tela inicial): depois de aberta uma vez com internet, ela abre e funciona sem sinal, e o projeto fica salvo no aparelho. Na versão do claude.ai, para **abrir** o link é preciso internet. Com a ferramenta já aberta, se a internet cair, dá para continuar desenhando, ver o 3D, as peças e o orçamento. O botão de salvar mostra **Sem internet** e o projeto fica salvo no aparelho; quando a conexão volta, ele vai sozinho para a sua conta.\nDica para a obra: abra a ferramenta antes de sair, ainda com sinal, espere uns segundos e não feche a aba. Sem internet não funcionam o chat com o Claude (ele responde pelo guia), o link do guia e, possivelmente, os downloads."},
+  a:"Sim, na versão instalada (o app do AutoMarcen na tela inicial): depois de aberta uma vez com internet, ela abre e funciona sem sinal, e o projeto fica salvo no aparelho. Na versão do claude.ai, para **abrir** o link é preciso internet. Com a ferramenta já aberta, se a internet cair, dá para continuar desenhando, ver o 3D, as peças e o orçamento. O botão de salvar mostra **Sem internet** e o projeto fica salvo no aparelho; quando a conexão volta, ele vai sozinho para a sua conta.\nDica para a obra: abra a ferramenta antes de sair, ainda com sinal, espere uns segundos e não feche a aba. Sem internet não funcionam a IA do chat (ele responde pelo guia), o Croqui por foto, o link do guia e, possivelmente, os downloads."},
  {id:"aparencia",q:"Como deixo a tela escura ou as letras maiores?",k:"modo escuro tema claro noite letra maior grande tamanho fonte ler enxergar vista",
   a:"Toque no botão de meia-lua no topo (**Aparência**). No celular, ele fica dentro do botão **⋯**. Em **Tema**, escolha Automático, Claro ou Escuro. Em **Tamanho das letras**, escolha Normal, Grande ou Maior. Fica guardado neste aparelho."},
  {id:"tablet",q:"Dicas para usar no tablet",k:"tablet dedo toque dicas celular tela pequena barra ferramentas",
@@ -3241,8 +3341,8 @@ ${guide}`;
 }
 const H={open:false,turns:[],busy:false,ctl:null,sample:null,mode:"try"}; // mode: try | ai | local
 const hLog=$("#hLog"), hIn=$("#hIn");
-(async()=>{try{H.sample=window.claude&&window.claude.use?await window.claude.use("sample"):null}catch(_){H.sample=null} if(!H.sample) H.mode="local"; updMode()})();
-function updMode(){$("#hMode").textContent=H.mode==="ai"?"Respostas do Claude, com base no guia":H.mode==="local"?"Respostas do guia do AutoMarcen":"Pergunte como fazer qualquer coisa no AutoMarcen"}
+H.sample=IA;
+function updMode(){$("#hMode").textContent=H.mode==="ai"?"Respostas da IA (Gemini), com base no guia":H.mode==="local"?"Respostas do guia do AutoMarcen":"Pergunte como fazer qualquer coisa no AutoMarcen"}
 function openHelp(){
   H.open=true; const h=$("#help"); h.classList.add("open"); h.setAttribute("aria-hidden","false"); $("#bChat").setAttribute("aria-expanded","true");
   if(!hLog.children.length) helpWelcome();
@@ -3289,7 +3389,7 @@ async function ask(text){
     const c=e&&e.code;
     if(c==="cancelled"){ if(e.text) renderAI(e.text,el,true); else el.innerHTML=`<span class="think">Pergunta cancelada.</span>`; H.turns.pop() }
     else if(HARD.includes(c)){H.mode="local"; updMode(); localAnswer(text,el)}
-    else localAnswer(text,el,c==="rate_limited"?"O Claude está ocupado agora. Esta resposta veio do guia; tente de novo daqui a pouco.":"Sem resposta do Claude agora. Esta resposta veio do guia.");
+    else localAnswer(text,el,c==="login"?"Esta resposta veio do guia. Para respostas da IA, entre na conta: toque em ⋯ e depois em Entrar na conta.":c==="quota"?`Você já usou as ${IA_LIMITE} perguntas de IA de hoje. Esta resposta veio do guia; amanhã a IA volta.`:c==="rate_limited"?"A IA está ocupada agora. Esta resposta veio do guia; tente de novo daqui a pouco.":c==="network"&&!online()?"Sem internet: esta resposta veio do guia guardado na ferramenta.":"Sem resposta da IA agora. Esta resposta veio do guia.");
   }finally{H.busy=false; H.ctl=null; setBusy(false)}
 }
 function setBusy(b){const s=$("#hSend"); s.innerHTML=b?`<svg class="i" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>`:`<svg class="i" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg>`; s.setAttribute("aria-label",b?"Parar":"Enviar"); s.type=b?"button":"submit"}

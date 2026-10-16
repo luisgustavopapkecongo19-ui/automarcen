@@ -21,6 +21,12 @@ Sem conta, dá para levar um projeto com **Exportar → Projeto (.json)** e depo
 - As regras do Firestore ficam em `firestore.rules`; cole no console do Firebase (Firestore Database → Regras) sempre que mudarem.
 - Só a versão instalável usa o Firebase; a do claude.ai continua salvando na conta Claude.
 
+### IA no app (Gemini pelo Firebase AI Logic)
+- O chat de ajuda, o **Croqui por foto** e as frases longas de **Falar ou escrever** usam o Gemini pelo Firebase AI Logic (API Gemini Developer, plano Spark, sem cartão). Código em `src/js/ia.js`; a versão do claude.ai continua com o Claude.
+- Só quem entrou na conta usa a IA. Cada conta tem até 50 pedidos por dia (`IA_LIMITE`), contados em `users/{uid}/uso/{dia}` e conferidos pelas regras do Firestore.
+- Modelos: `gemini-3.5-flash-lite` no chat e nas frases, `gemini-3.5-flash` na foto (`IA_MODELOS`).
+- App Check (obrigatório no AI Logic a partir de 2/11/2026): coloque a chave do site do reCAPTCHA Enterprise em `FB_RECAPTCHA` (`src/js/conta.js`). Vazia, o App Check fica desligado.
+
 ## Código
 O código fica em `src/`, separado em partes. Mude sempre ali e depois rode:
 
@@ -52,4 +58,4 @@ Ele junta as partes e gera as duas versões:
 As diferenças entre as versões ficam marcadas no próprio código, com `//#if app` … `//#else` … `//#endif` (`app` é a versão instalável; o resto é a do claude.ai). Uma futura versão para Windows (Tauri) entra como mais uma versão em `tools/build.py`.
 
 ## Arquivos publicados
-`vendor/` tem three.js r128, jsPDF 2.5.1 e Firebase 10.14.1; `fonts/` tem Instrument Sans e IBM Plex Mono (licença OFL); `icons/` e `manifest.webmanifest` são do app instalável. O `build.py` também atualiza a lista e a versão do cache em `sw.js`.
+`vendor/` tem three.js r128, jsPDF 2.5.1 e Firebase 10.14.1 (app, auth, firestore e app-check); `fonts/` tem Instrument Sans e IBM Plex Mono (licença OFL); `icons/` e `manifest.webmanifest` são do app instalável. O `build.py` também atualiza a lista e a versão do cache em `sw.js`.

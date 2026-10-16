@@ -8,13 +8,16 @@ const FB_CFG={
   messagingSenderId:"1035263726882",
   appId:"1:1035263726882:web:3a259b672c3913fd9d017b"
 };
-const FB={auth:null,db:null,user:null,unsub:null,ready:null,watching:false,known:false};
+// chave do site do reCAPTCHA Enterprise para o App Check (protege a IA). Vazia = App Check desligado
+const FB_RECAPTCHA="";
+const FB={auth:null,db:null,user:null,unsub:null,ready:null,watching:false,known:false,appCheck:null};
 function fbLoad(){
   if(FB.ready) return FB.ready;
   FB.ready=loadScript("vendor/firebase/app.js")
-    .then(()=>Promise.all([loadScript("vendor/firebase/auth.js"),loadScript("vendor/firebase/firestore.js")]))
+    .then(()=>Promise.all([loadScript("vendor/firebase/auth.js"),loadScript("vendor/firebase/firestore.js"),FB_RECAPTCHA?loadScript("vendor/firebase/app-check.js"):0]))
     .then(()=>{
       if(!firebase.apps.length) firebase.initializeApp(FB_CFG);
+      if(FB_RECAPTCHA&&!FB.appCheck) try{FB.appCheck=firebase.appCheck(); FB.appCheck.activate(new firebase.appCheck.ReCaptchaEnterpriseProvider(FB_RECAPTCHA),true)}catch(e){FB.appCheck=null; console.warn("App Check",e)}
       FB.auth=firebase.auth(); FB.auth.languageCode="pt-BR";
       FB.db=firebase.firestore();
     }).catch(e=>{FB.ready=null; throw e});
