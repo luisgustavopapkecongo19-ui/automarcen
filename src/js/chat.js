@@ -2,12 +2,17 @@
 //#if app
 const APP_VER="v0.15 beta";
 //#else
-const APP_VER="v0.13.2 beta";
+const APP_VER="v0.13.3 beta";
 //#endif
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
 //#if app
   {v:"v0.15 beta",items:["Modelos da comunidade, primeira parte: em ⋯ → Minha conta há a opção Ajudar a melhorar os modelos. Ela vem desligada.","Ligada, o app manda uma cópia sem identificação só do formato dos seus móveis (medidas, vãos, portas, gavetas, puxador e cor). Não vai nome, cliente, preço, telefone, foto nem a sua conta.","Os melhores formatos, revisados um a um, vão virar modelos prontos no botão Móvel."]},
+  {v:"v0.14.1 beta",items:["Puxador cava no 3D: agora aparece como uma faixa escura e limpa no alto da gaveta ou na borda da porta, sem os riscos que piscavam na frente."]},
+//#else
+  {v:"v0.13.3 beta",items:["Puxador cava no 3D: agora aparece como uma faixa escura e limpa no alto da gaveta ou na borda da porta, sem os riscos que piscavam na frente."]},
+//#endif
+//#if app
   {v:"v0.14 beta",items:["Inteligência no app: com a conta entrada, o chat de ajuda responde com a IA do Google (Gemini), com base no guia do AutoMarcen.","Croqui por foto também no app: em Móvel, tire uma foto do desenho no papel e a IA monta o móvel com as medidas. Confira sempre antes de cortar.","Falar ou escrever entende frases com vários móveis quando há internet e a conta está entrada.","Cada conta tem até 50 pedidos de IA por dia. Sem conta ou sem internet, o chat responde pelo guia e Falar ou escrever entende as frases simples no aparelho."]},
 //#endif
   {v:"v0.13.2 beta",items:["Cor do móvel mais fácil de trocar: ao tocar num móvel no celular, o cartão tem o botão Cor, que abre direto nos acabamentos.","No desenho, o móvel mostra a cor escolhida mais forte, também enquanto está selecionado. Antes ele ficava apagado e parecia que a cor não tinha mudado.","Com vários móveis selecionados, dá para trocar o acabamento da caixa e das frentes de todos de uma vez. O antigo Cor desses casos agora se chama Cor das linhas, porque muda só o traço."]},
