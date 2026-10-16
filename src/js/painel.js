@@ -16,6 +16,9 @@ function swatches(cur,key){
     <label class="sw custom" title="Outra cor"><input type="color" data-${key}c="1" value="${/^#/.test(cur)?cur:"#ff5a1f"}" aria-label="Escolher outra cor"></label>
   </div>`;
 }
+/* cores dos móveis (FIN); cur = -1 quando os móveis selecionados têm cores diferentes */
+const finGrp=(lb,key,cur)=>`<div class="grp"><span class="lb">${lb}</span><div class="fin">${FIN.map((f,i)=>`<button style="background:${finBg(f)}" data-${key}="${i}" aria-pressed="${cur===i}" title="${f[0]}" aria-label="${f[0]}"></button>`).join("")}</div><span class="note">${FIN[cur]?.[0]||(cur<0?"Cores diferentes":"")}</span></div>`;
+const sameFin=(mods,k)=>mods.every(m=>+m[k]===+mods[0][k])?+mods[0][k]:-1;
 const LW=[[.8,"Fina"],[1.4,"Média"],[2.4,"Grossa"]];
 const lwSeg=(cur,key)=>`<div class="seg">${LW.map(([v,n])=>`<button data-${key}="${v}" aria-pressed="${Math.abs((cur||1.4)-v)<.01}">${n}</button>`).join("")}</div>`;
 const layerSel=(cur,k)=>`<select class="in" data-k="${k}">${P.layers.map(l=>`<option value="${l.id}"${l.id===cur?" selected":""}>${esc(l.name)}</option>`).join("")}</select>`;
@@ -57,10 +60,12 @@ function docHTML(){
   </div>`;
 }
 function multiHTML(items){
+  const mods=items.filter(i=>i.t==="mod");
   return `<div class="ph"><h3>${items.length} objetos</h3><span class="tag">seleção</span></div>
   ${!items.some(i=>i.t==="mod")&&convCandidates()?convBlock():""}
   <label class="f"><span class="lb">Camada</span>${layerSel("", "mLayer").replace('<select','<select data-placeholder="1"').replace(">",">"+'<option value="" selected disabled>Mover para…</option>')}</label>
-  <div class="f"><span class="lb">Cor</span>${swatches("","mcol")}</div>
+  ${mods.length?`${finGrp(`Acabamento da caixa${mods.length>1?` (${mods.length} móveis)`:""}`,"mfb",sameFin(mods,"fb"))}${finGrp(`Acabamento das frentes${mods.length>1?` (${mods.length} móveis)`:""}`,"mff",sameFin(mods,"ff"))}`:""}
+  <div class="f"><span class="lb">${mods.length?"Cor das linhas":"Cor"}</span>${swatches("","mcol")}</div>
   <div class="f"><span class="lb">Espessura</span>${lwSeg(0,"mlw")}</div>
   <div class="row" style="justify-content:flex-start"><button class="btn" data-a="dup">Duplicar</button><button class="btn del" data-a="del">Excluir</button></div>`;
 }
@@ -105,8 +110,8 @@ function modHTML(m){
     <button class="btn sm" data-a="addsec" style="justify-self:start">+ Adicionar vão</button>
   </div>
   <div class="grp"><span class="lb">Puxador</span><div class="seg">${PULLS.map(([k,l])=>`<button data-pull="${k}" aria-pressed="${(m.pull||"barra")===k}">${l}</button>`).join("")}</div><span class="note">${{barra:"Puxador de barra, conta no orçamento por unidade.",botao:"Puxador de botão, conta por unidade.",perfil:"Perfil de alumínio na borda da frente, conta por metro.",cava:"Cava usinada na frente, sem ferragem.",nenhum:"Sem puxador: fecho toque (abre ao empurrar), conta por unidade."}[m.pull||"barra"]}</span></div>
-  <div class="grp"><span class="lb">Acabamento da caixa</span><div class="fin">${FIN.map((f,i)=>`<button style="background:${finBg(f)}" data-fb="${i}" aria-pressed="${m.fb===i}" title="${f[0]}" aria-label="${f[0]}"></button>`).join("")}</div><span class="note">${FIN[m.fb]?.[0]||""}</span></div>
-  <div class="grp"><span class="lb">Acabamento das frentes</span><div class="fin">${FIN.map((f,i)=>`<button style="background:${finBg(f)}" data-ff="${i}" aria-pressed="${m.ff===i}" title="${f[0]}" aria-label="${f[0]}"></button>`).join("")}</div><span class="note">${FIN[m.ff]?.[0]||""}</span></div>
+  ${finGrp("Acabamento da caixa","fb",+m.fb)}
+  ${finGrp("Acabamento das frentes","ff",+m.ff)}
   <div class="seg"><button data-dims="1" aria-pressed="${!!m.dims}">Cotas automáticas</button><button data-dims="0" aria-pressed="${!m.dims}">Sem cotas</button></div>
   <div class="grp"><span class="lb">Resumo</span><div class="kv">
     <span>Peças</span><b>${pc}</b><span>Dobradiças</span><b>${hw.hinge}</b><span>Corrediças (par)</span><b>${hw.slide}</b><span>Puxadores</span><b>${hw.pull}</b>${hw.rod?`<span>Tubo de cabide</span><b>${num(hw.rod,2)} m</b>`:""}
@@ -203,6 +208,8 @@ pb.addEventListener("click",e=>{
   if(d.intclear!==undefined&&one){pushUndo(); delete one.secs[+d.intclear].int; return afterEdit()}
   if(d.fb!==undefined&&one){pushUndo(); one.fb=+d.fb; return afterEdit()}
   if(d.ff!==undefined&&one){pushUndo(); one.ff=+d.ff; return afterEdit()}
+  if(d.mfb!==undefined){pushUndo(); selItems().forEach(i=>{if(i.t==="mod") i.fb=+d.mfb}); return afterEdit()}
+  if(d.mff!==undefined){pushUndo(); selItems().forEach(i=>{if(i.t==="mod") i.ff=+d.mff}); return afterEdit()}
   if(d.dims!==undefined&&one){pushUndo(); one.dims=d.dims==="1"; return afterEdit()}
   if(d.cc!==undefined){curCol=d.cc; return renderPanel()}
   if(d.clw!==undefined){curLw=+d.clw; return renderPanel()}

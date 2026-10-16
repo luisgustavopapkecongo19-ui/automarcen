@@ -39,7 +39,7 @@ function modPrims(m,col){
     if(r.int&&!showI) continue;
     const pts=[[X(r.x),Y(r.y)],[X(r.x+r.w),Y(r.y)],[X(r.x+r.w),Y(r.y+r.h)],[X(r.x),Y(r.y+r.h)]];
     if(r.door&&showI){ if(r.fill==="front") out.push({k:"poly",pts,close:1,col,lw:.7,dash:1,fill:null,snap:false}); continue }
-    out.push({k:"poly",pts,close:1,col,lw:r.lw||1.1,fill:r.fill==="front"?ff:r.fill==="body"?fb:r.fill==="ink"?"ink":r.fill==="groove"?"#6a645d":null,snap:r.fill!=="ink"});
+    out.push({k:"poly",pts,close:1,col,lw:r.lw||1.1,fill:r.fill==="front"?ff:r.fill==="body"?fb:r.fill==="ink"?"ink":r.fill==="groove"?"#6a645d":null,fin:r.fill==="front"||r.fill==="body",snap:r.fill!=="ink"});
   }
   for(const l of g.l2d){ if((l.int&&!showI)||(l.door&&showI)) continue; out.push({k:"line",a:[X(l.x1),Y(l.y1)],b:[X(l.x2),Y(l.y2)],col,lw:l.lw||.8,dash:l.dash}) }
   if(m.dims){
