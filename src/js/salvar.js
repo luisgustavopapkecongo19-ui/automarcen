@@ -2,7 +2,14 @@
 const SV={local:!!LS,cloud:"pending",synced:false,busy:false,again:false,err:null,dirty:new Set(),dead:new Set(),parts:{},remote:{},col:null,warned:false,retryT:0};
 const CHUNK=100000;
 let saveT=0;
-function save(){ if(P){P.updated=Date.now(); delete P.sample; SV.dirty.add(P.id)} queueSave() }
+function save(){
+  if(P){P.updated=Date.now(); delete P.sample; SV.dirty.add(P.id)
+//#if app
+    contribLater(P.id) // modelos da comunidade: só se a pessoa ligou (modelos.js)
+//#endif
+  }
+  queueSave()
+}
 function queueSave(){ clearTimeout(saveT); saveT=setTimeout(flushSave,900); updSave() }
 async function flushSave(){
   clearTimeout(saveT); saveT=0;

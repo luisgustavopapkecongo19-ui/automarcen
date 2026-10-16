@@ -36,7 +36,7 @@ function fbUse(u){
   if(prev&&(!u||prev!==u.uid)){SV.dirty.clear(); SV.dead.clear()}
   if(!u){SV.cloud="off"; updSave(); updAcct(); return}
   FB.unsub=cloudAttach(FB.db.collection("users").doc(u.uid).collection("projetos"));
-  updAcct();
+  updAcct(); contribAll();
 }
 function updAcct(){
   const b=document.querySelector('[data-m="acct"] span'); if(b) b.textContent=FB.user?"Minha conta":"Entrar na conta";
@@ -66,8 +66,10 @@ function showAcct(){
     dlg(`<h2>Minha conta</h2>
       <p>Conectado como <b>${esc(who)}</b>. Os projetos ficam salvos na nuvem e aparecem em todos os aparelhos onde você entrar com esta conta.</p>
       <p class="note">Sem internet, o projeto fica salvo neste aparelho e sobe para a conta quando a conexão voltar. Ao sair da conta, os projetos continuam neste aparelho.</p>
+      ${contribBlock()}
       <div class="row act"><button class="btn ghost" data-x>Fechar</button><button class="btn" data-out>Sair da conta</button></div>`,el=>{
       $("[data-x]",el).onclick=closeDlg;
+      $("#aMod",el).onchange=e=>{contribSet(e.target.checked); if(e.target.checked) toast("Obrigado! Os móveis vão sem nome, cliente ou preço")};
       $("[data-out]",el).onclick=async()=>{try{await FB.auth.signOut(); closeDlg(); toast("Você saiu da conta. Os projetos continuam neste aparelho")}catch(e){toast(fbMsg(e))}};
     },"acct");
     return;
