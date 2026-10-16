@@ -345,6 +345,7 @@ textarea.code{font:calc(12px*var(--fs,1))/1.45 var(--mono);min-height:150px;word
   .mcard .cdims .in{min-height:44px;font-size:16px}
   .mcard .cacts{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
   .mcard .cacts button{min-height:44px;padding:0 12px;border:1px solid var(--line);flex:none}
+  .mcard .cacts .cdot{width:18px;height:18px;border-radius:50%;border:1px solid var(--line-2);flex:none}
   .mcard .cacts .io{width:44px;padding:0;justify-content:center}
   .mcard .cacts .pri{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);flex:1;justify-content:center}
 }
@@ -839,18 +840,6 @@ function newProject(name){const ph=lsGet("croqui3d-whats")||"", mp=myPrices(), m
   if(mp){for(const k in mat) if(+mp.mat?.[k]>0) mat[k].price=+mp.mat[k]; for(const k in mp.budget||{}) if(k in budget&&+mp.budget[k]>0) budget[k]=+mp.budget[k]}
   return{id:uid(),name,grid:5,unit:"cm",textH:4,layers:LAYERS0.map(l=>({...l,visible:true,locked:false})),curLayer:"estrutura",items:[],mat,budget,sheet:{w:2750,h:1840,kerf:4,trim:10},updated:Date.now()}}
 function makeModule(tplKey,over){const t=JSON.parse(JSON.stringify(TPL[tplKey]||TPL.livre));const m=Object.assign({id:uid(),t:"mod",layer:"moveis",col:"layer",lw:1.2,x:0,y:0,dims:true},t,over||{});m.y=-((+m.elev||0)+m.H);delete m.elev;return m}
-function sampleProject(){
-  const p=newProject("Exemplo: cozinha");
-  const old=P; P=p;
-  const b=makeModule("balcao",{name:"Balcão pia",W:147,H:85,D:60,secs:[{w:45,type:"gavetas",n:4},{w:0,type:"porta2",n:1},{w:40,type:"porta",n:1,hinge:"D"}]});
-  const a=makeModule("aereo",{name:"Aéreo",W:147,H:70,D:35,x:0,dims:false,secs:[{w:0,type:"porta",n:1},{w:0,type:"porta2",n:1},{w:0,type:"porta",n:1}]});
-  a.y=-(150+70);
-  p.items.push(b,a);
-  p.items.push({id:uid(),t:"dim",layer:"cotas",col:"layer",lw:1,a:[147,-85],b:[147,-150],off:14,h:4});
-  p.items.push({id:uid(),t:"text",layer:"anot",col:"layer",lw:1,p:[0,-246],s:"Cozinha — parede da pia",h:6});
-  p.items.push({id:uid(),t:"line",layer:"estrutura",col:"layer",lw:2.4,a:[-20,0],b:[180,0]});
-  P=old; return p;
-}
 function ensure(p){
   const d=newProject(p.name||"Projeto");
   for(const k of ["grid","unit","textH","curLayer","sheet"]) if(p[k]===undefined) p[k]=d[k];
@@ -886,8 +875,9 @@ function load(){
   if(s&&Array.isArray(s.projects)&&s.projects.length) store=s;
   else{
     const raw=lsGet(OLD_KEY), old=raw?migrateOld(raw):[];
-    const smp=sampleProject(); smp.sample=true;
-    store={current:null,projects:[smp,...old.filter(p=>p.items.length)]};
+    // quem chega pela primeira vez começa com um projeto vazio; os modelos ficam em Móvel
+    const kept=old.filter(p=>p.items.length), novo=newProject("Projeto 1"); novo.sample=true;
+    store={current:null,projects:kept.length?kept:[novo]};
   }
   store.projects.forEach(ensure);
   P=store.projects.find(p=>p.id===store.current)||store.projects[0]; store.current=P.id;
@@ -1076,7 +1066,7 @@ function modPrims(m,col){
     if(r.int&&!showI) continue;
     const pts=[[X(r.x),Y(r.y)],[X(r.x+r.w),Y(r.y)],[X(r.x+r.w),Y(r.y+r.h)],[X(r.x),Y(r.y+r.h)]];
     if(r.door&&showI){ if(r.fill==="front") out.push({k:"poly",pts,close:1,col,lw:.7,dash:1,fill:null,snap:false}); continue }
-    out.push({k:"poly",pts,close:1,col,lw:r.lw||1.1,fill:r.fill==="front"?ff:r.fill==="body"?fb:r.fill==="ink"?"ink":r.fill==="groove"?"#6a645d":null,snap:r.fill!=="ink"});
+    out.push({k:"poly",pts,close:1,col,lw:r.lw||1.1,fill:r.fill==="front"?ff:r.fill==="body"?fb:r.fill==="ink"?"ink":r.fill==="groove"?"#6a645d":null,fin:r.fill==="front"||r.fill==="body",snap:r.fill!=="ink"});
   }
   for(const l of g.l2d){ if((l.int&&!showI)||(l.door&&showI)) continue; out.push({k:"line",a:[X(l.x1),Y(l.y1)],b:[X(l.x2),Y(l.y2)],col,lw:l.lw||.8,dash:l.dash}) }
   if(m.dims){
@@ -1207,7 +1197,7 @@ function rp(c,pr,s,ox,oy,o,hi){
   if(pr.k==="line"){c.beginPath();c.moveTo(X(pr.a[0]),Y(pr.a[1]));c.lineTo(X(pr.b[0]),Y(pr.b[1]));c.stroke()}
   else if(pr.k==="poly"){
     c.beginPath(); pr.pts.forEach((p,i)=>i?c.lineTo(X(p[0]),Y(p[1])):c.moveTo(X(p[0]),Y(p[1]))); if(pr.close) c.closePath();
-    if(pr.fill){c.fillStyle=pr.fill==="ink"?col:pr.fill; c.globalAlpha=pr.fill==="ink"?1:(hi?o.fa*.7:o.fa); c.fill(); c.globalAlpha=1}
+    if(pr.fill){c.fillStyle=pr.fill==="ink"?col:pr.fill; c.globalAlpha=pr.fill==="ink"?1:pr.fin?.72:(hi?o.fa*.7:o.fa); c.fill(); c.globalAlpha=1}
     c.stroke();
   }
   else if(pr.k==="circle"){c.beginPath();c.arc(X(pr.c[0]),Y(pr.c[1]),pr.r*s,0,Math.PI*2);c.stroke()}
@@ -1246,6 +1236,11 @@ function drawNow(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   renderScene(ctx,view.s,view.x,view.y,CW,CH,liveOpts());
   const o=liveOpts(), acc=C.acc;
+  if(!P.items.length&&!st){ // projeto vazio: uma dica discreta no meio da tela
+    const lines=["Projeto vazio","Toque em Móvel para pôr um móvel pronto","ou desenhe com Linha e Retângulo"];
+    ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillStyle=C.fg; ctx.globalAlpha=.5;
+    lines.forEach((t,i)=>{ctx.font=`${i?400:600} ${i?13:15}px ${FONT}`; ctx.fillText(t,CW/2,CH/2-22+i*22)}); ctx.globalAlpha=1;
+  }
   const pv=(pr)=>rp(ctx,pr,view.s,view.x,view.y,o,acc);
   // hover
   if(tool==="select"&&hoverId&&!sel.has(hoverId)){const it=byId(hoverId); if(it&&visible(it)){ctx.globalAlpha=.45; for(const pr of prims(it)) rp(ctx,pr,view.s,view.x,view.y,o,acc); ctx.globalAlpha=1}}
@@ -1560,7 +1555,7 @@ function modCard(m){
   const u=P.unit, f=v=>num(toU(v),u==="mm"?0:1), n=(m.secs||[]).length;
   return `<div class="ch"><div><b>${esc(m.name||"Móvel")}</b><small>${f(m.W)} × ${f(m.H)} × ${f(m.D)} ${u}${n?` · ${n} vão${n>1?"s":""}`:""}</small></div><button class="cx" data-c="close" aria-label="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <div class="cdims">${[["W","Largura"],["H","Altura"],["D","Profund."]].map(([k,l])=>`<label>${l} (${u})<input class="in n" data-q="${k}" value="${toU(m[k])}" inputmode="decimal" enterkeyhint="done"></label>`).join("")}</div>
-  <div class="cacts"><button data-c="edit" class="pri"><svg class="i" viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z"/></svg>Editar</button><button data-c="3d"><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg>3D</button><button data-c="dup" class="io" aria-label="Duplicar" title="Duplicar"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button><button data-c="del" class="del io" aria-label="Excluir" title="Excluir"><svg class="i" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg></button></div>`;
+  <div class="cacts"><button data-c="edit" class="pri"><svg class="i" viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z"/></svg>Editar</button><button data-c="3d"><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg>3D</button><button data-c="cor" aria-label="Cor do móvel"><span class="cdot" style="background:${finBg(FIN[m.ff]||FIN[0])}"></span>Cor</button><button data-c="dup" class="io" aria-label="Duplicar" title="Duplicar"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button><button data-c="del" class="del io" aria-label="Excluir" title="Excluir"><svg class="i" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg></button></div>`;
 }
 function updCtx(){
   const c=$("#ctx"); if(!sel.size||tool!=="select"){c.hidden=true; c.classList.remove("mcard"); return}
@@ -1576,12 +1571,14 @@ function updCtx(){
 }
 $("#ctx").addEventListener("click",e=>{const a=e.target.closest("[data-c]")?.dataset.c; if(!a) return;
   if(a==="close"){sel.clear(); renderPanel(); updCtx(); draw(); return}
-  if(a==="conv") return showConvert(); if(a==="edit") openPanel("props"); if(a==="del") delSel(); if(a==="dup") dupSel(); if(a==="rot") rotSel(); if(a==="3d") setView("3d")});
+  if(a==="conv") return showConvert(); if(a==="edit") openPanel("props"); if(a==="cor") showFin(); if(a==="del") delSel(); if(a==="dup") dupSel(); if(a==="rot") rotSel(); if(a==="3d") setView("3d")});
 $("#ctx").addEventListener("change",e=>{const k=e.target.dataset.q; if(!k) return; const one=selItems().length===1?selItems()[0]:null; if(!one||one.t!=="mod") return;
   const cm=parseN(e.target.value)/U(); if(!(cm>=10)){e.target.value=toU(one[k]); return toast("Use uma medida a partir de 10 cm")}
   pushUndo(); if(k==="H"){const bottom=one.y+one.H; one.H=cm; one.y=bottom-cm} else one[k]=cm; e.target.blur(); afterEdit()});
 $("#ctx").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.dataset.q){e.preventDefault(); e.target.blur()}});
 addEventListener("resize",()=>{updCtx(); updSave()});
+/* abre o painel já nas cores (acabamentos) do móvel */
+function showFin(){openPanel("props"); const g=$("#pbody [data-fb]")?.closest(".grp"); if(g) requestAnimationFrame(()=>g.scrollIntoView({block:"start",behavior:"smooth"}))}
 function delSel(){if(!sel.size) return; pushUndo(); P.items=P.items.filter(i=>!sel.has(i.id)); sel.clear(); afterEdit(); updCtx()}
 function dupSel(){if(!sel.size) return; pushUndo(); const d=P.grid*2, ns=new Set();
   for(const it of selItems()){const c=JSON.parse(JSON.stringify(it)); c.id=uid(); if(c.t==="mod"){c.x+=c.W; c.name=c.name+" (cópia)"} else translate(c,d,d); P.items.push(c); ns.add(c.id)}
@@ -1639,6 +1636,9 @@ function swatches(cur,key){
     <label class="sw custom" title="Outra cor"><input type="color" data-${key}c="1" value="${/^#/.test(cur)?cur:"#ff5a1f"}" aria-label="Escolher outra cor"></label>
   </div>`;
 }
+/* cores dos móveis (FIN); cur = -1 quando os móveis selecionados têm cores diferentes */
+const finGrp=(lb,key,cur)=>`<div class="grp"><span class="lb">${lb}</span><div class="fin">${FIN.map((f,i)=>`<button style="background:${finBg(f)}" data-${key}="${i}" aria-pressed="${cur===i}" title="${f[0]}" aria-label="${f[0]}"></button>`).join("")}</div><span class="note">${FIN[cur]?.[0]||(cur<0?"Cores diferentes":"")}</span></div>`;
+const sameFin=(mods,k)=>mods.every(m=>+m[k]===+mods[0][k])?+mods[0][k]:-1;
 const LW=[[.8,"Fina"],[1.4,"Média"],[2.4,"Grossa"]];
 const lwSeg=(cur,key)=>`<div class="seg">${LW.map(([v,n])=>`<button data-${key}="${v}" aria-pressed="${Math.abs((cur||1.4)-v)<.01}">${n}</button>`).join("")}</div>`;
 const layerSel=(cur,k)=>`<select class="in" data-k="${k}">${P.layers.map(l=>`<option value="${l.id}"${l.id===cur?" selected":""}>${esc(l.name)}</option>`).join("")}</select>`;
@@ -1680,10 +1680,12 @@ function docHTML(){
   </div>`;
 }
 function multiHTML(items){
+  const mods=items.filter(i=>i.t==="mod");
   return `<div class="ph"><h3>${items.length} objetos</h3><span class="tag">seleção</span></div>
   ${!items.some(i=>i.t==="mod")&&convCandidates()?convBlock():""}
   <label class="f"><span class="lb">Camada</span>${layerSel("", "mLayer").replace('<select','<select data-placeholder="1"').replace(">",">"+'<option value="" selected disabled>Mover para…</option>')}</label>
-  <div class="f"><span class="lb">Cor</span>${swatches("","mcol")}</div>
+  ${mods.length?`${finGrp(`Acabamento da caixa${mods.length>1?` (${mods.length} móveis)`:""}`,"mfb",sameFin(mods,"fb"))}${finGrp(`Acabamento das frentes${mods.length>1?` (${mods.length} móveis)`:""}`,"mff",sameFin(mods,"ff"))}`:""}
+  <div class="f"><span class="lb">${mods.length?"Cor das linhas":"Cor"}</span>${swatches("","mcol")}</div>
   <div class="f"><span class="lb">Espessura</span>${lwSeg(0,"mlw")}</div>
   <div class="row" style="justify-content:flex-start"><button class="btn" data-a="dup">Duplicar</button><button class="btn del" data-a="del">Excluir</button></div>`;
 }
@@ -1728,8 +1730,8 @@ function modHTML(m){
     <button class="btn sm" data-a="addsec" style="justify-self:start">+ Adicionar vão</button>
   </div>
   <div class="grp"><span class="lb">Puxador</span><div class="seg">${PULLS.map(([k,l])=>`<button data-pull="${k}" aria-pressed="${(m.pull||"barra")===k}">${l}</button>`).join("")}</div><span class="note">${{barra:"Puxador de barra, conta no orçamento por unidade.",botao:"Puxador de botão, conta por unidade.",perfil:"Perfil de alumínio na borda da frente, conta por metro.",cava:"Cava usinada na frente, sem ferragem.",nenhum:"Sem puxador: fecho toque (abre ao empurrar), conta por unidade."}[m.pull||"barra"]}</span></div>
-  <div class="grp"><span class="lb">Acabamento da caixa</span><div class="fin">${FIN.map((f,i)=>`<button style="background:${finBg(f)}" data-fb="${i}" aria-pressed="${m.fb===i}" title="${f[0]}" aria-label="${f[0]}"></button>`).join("")}</div><span class="note">${FIN[m.fb]?.[0]||""}</span></div>
-  <div class="grp"><span class="lb">Acabamento das frentes</span><div class="fin">${FIN.map((f,i)=>`<button style="background:${finBg(f)}" data-ff="${i}" aria-pressed="${m.ff===i}" title="${f[0]}" aria-label="${f[0]}"></button>`).join("")}</div><span class="note">${FIN[m.ff]?.[0]||""}</span></div>
+  ${finGrp("Acabamento da caixa","fb",+m.fb)}
+  ${finGrp("Acabamento das frentes","ff",+m.ff)}
   <div class="seg"><button data-dims="1" aria-pressed="${!!m.dims}">Cotas automáticas</button><button data-dims="0" aria-pressed="${!m.dims}">Sem cotas</button></div>
   <div class="grp"><span class="lb">Resumo</span><div class="kv">
     <span>Peças</span><b>${pc}</b><span>Dobradiças</span><b>${hw.hinge}</b><span>Corrediças (par)</span><b>${hw.slide}</b><span>Puxadores</span><b>${hw.pull}</b>${hw.rod?`<span>Tubo de cabide</span><b>${num(hw.rod,2)} m</b>`:""}
@@ -1826,6 +1828,8 @@ pb.addEventListener("click",e=>{
   if(d.intclear!==undefined&&one){pushUndo(); delete one.secs[+d.intclear].int; return afterEdit()}
   if(d.fb!==undefined&&one){pushUndo(); one.fb=+d.fb; return afterEdit()}
   if(d.ff!==undefined&&one){pushUndo(); one.ff=+d.ff; return afterEdit()}
+  if(d.mfb!==undefined){pushUndo(); selItems().forEach(i=>{if(i.t==="mod") i.fb=+d.mfb}); return afterEdit()}
+  if(d.mff!==undefined){pushUndo(); selItems().forEach(i=>{if(i.t==="mod") i.ff=+d.mff}); return afterEdit()}
   if(d.dims!==undefined&&one){pushUndo(); one.dims=d.dims==="1"; return afterEdit()}
   if(d.cc!==undefined){curCol=d.cc; return renderPanel()}
   if(d.clw!==undefined){curLw=+d.clw; return renderPanel()}
@@ -2964,9 +2968,11 @@ function setView(v){
 }
 
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
-const APP_VER="v0.13 beta";
+const APP_VER="v0.13.2 beta";
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
+  {v:"v0.13.2 beta",items:["Cor do móvel mais fácil de trocar: ao tocar num móvel no celular, o cartão tem o botão Cor, que abre direto nos acabamentos.","No desenho, o móvel mostra a cor escolhida mais forte, também enquanto está selecionado. Antes ele ficava apagado e parecia que a cor não tinha mudado.","Com vários móveis selecionados, dá para trocar o acabamento da caixa e das frentes de todos de uma vez. O antigo Cor desses casos agora se chama Cor das linhas, porque muda só o traço."]},
+  {v:"v0.13.1 beta",items:["Tela limpa para quem começa: o primeiro projeto abre vazio, sem móveis de exemplo. Os modelos prontos e os conjuntos continuam no botão Móvel.","Com o projeto vazio, o meio da tela mostra por onde começar.","Os projetos que você já tinha continuam como estavam."]},
   {v:"v0.13 beta",items:["Preços em branco: os projetos novos não vêm mais com preços de exemplo, porque cada região tem um valor. Preencha chapas e ferragens com os preços dos seus fornecedores na aba Orçamento.","O último preço que você digitou de cada item fica guardado neste aparelho, e os próximos projetos já começam com ele.","Enquanto faltar algum preço, o Orçamento mostra o aviso Faltam preços, marca os campos vazios e o total aparece como incompleto. Antes de gerar o PDF, copiar o resumo ou mandar o 3D para o cliente, o AutoMarcen avisa.","Os projetos que você já tinha continuam com os preços que estavam neles."]},
   {v:"v0.12 beta",items:["Clientes e relatórios: no botão ⋯, veja quanto foi orçado e vendido por cliente, por mês e quantas chapas de cada material você usou. Toque num cliente para ver os orçamentos dele e num projeto para abri-lo.","Exportar tudo: no mesmo lugar, um arquivo .json com todos os clientes, projetos, orçamentos e materiais, para guardar uma cópia de segurança.","No app instalado pelo site: entre na sua conta AutoMarcen (botão ⋯ → Entrar na conta), com Google ou e-mail, e seus projetos aparecem no celular, no tablet e no computador."]},
   {v:"v0.11 beta",items:["Tela mais fácil de usar com o dedo no celular: o nome do projeto aparece inteiro, o Salvar mostra o texto e Aparência, Exportar e o Guia ficam no botão ⋯ do topo.","Abas Desenho, 3D, Peças e corte e Orçamento mais altas e com letra maior.","GRADE, OBJ, ORTO e os outros ficam numa linha só embaixo do desenho, que desliza para o lado. Desfazer e refazer ficam no começo dessa linha, perto do dedo.","Ao tocar num móvel, sobe um cartão com o nome e as medidas: dá para mudar largura, altura e profundidade ali mesmo, ou tocar em Editar para ver tudo.","Cores, Fina/Média/Grossa e cm/mm do painel ficaram no tamanho do dedo, e no tablet a coluna de ferramentas não mostra mais as letras de atalho."]},
@@ -2999,8 +3005,8 @@ function checkNews(){
 const GUIDE_URL="https://claude.ai/artifact/LoxsKJPStynxu7bheZw574";
 /* base de conhecimento: o conteúdo do Guia do AutoMarcen, em perguntas. Serve de fonte para o Claude e para a busca sem internet */
 const KB=[
- {id:"comecar",q:"Por onde eu começo?",k:"comecar inicio primeiro projeto novo criar usar ferramenta como funciona",go:"projetos",
-  a:"Há dois jeitos de fazer um móvel:\n1. **Móvel pronto**: toque em **Móvel** na barra de ferramentas, escolha o modelo e digite as medidas.\n2. **Desenhar e gerar**: desenhe a frente do móvel com **Retângulo** e **Linha**, selecione o contorno e toque em **Gerar móvel**.\nPara um projeto novo, toque no nome do projeto no topo e depois em **+ Novo projeto**. Linhas soltas ficam só no desenho: para ter 3D, peças e orçamento, o desenho precisa virar móvel."},
+ {id:"comecar",q:"Por onde eu começo?",k:"comecar inicio primeiro projeto novo criar usar ferramenta como funciona vazio tela em branco limpa exemplo modelo",go:"projetos",
+  a:"O primeiro projeto começa vazio. Há dois jeitos de fazer um móvel:\n1. **Móvel pronto**: toque em **Móvel** na barra de ferramentas, escolha o modelo e digite as medidas.\n2. **Desenhar e gerar**: desenhe a frente do móvel com **Retângulo** e **Linha**, selecione o contorno e toque em **Gerar móvel**.\nPara um projeto novo, toque no nome do projeto no topo e depois em **+ Novo projeto**. Linhas soltas ficam só no desenho: para ter 3D, peças e orçamento, o desenho precisa virar móvel."},
  {id:"inserir",q:"Como insiro um móvel pronto?",k:"inserir modelo pronto balcao aereo gaveteiro armario roupeiro estante comoda escrivaninha cozinha completa painel tv rack torre quente modulo livre adicionar movel",go:"inserir",
   a:"1. Toque em **Móvel** na barra de ferramentas e escolha o modelo: balcão, aéreo, gaveteiro, armário, roupeiro, estante, balcão gaveta+porta, roupeiro de correr, cômoda, escrivaninha ou módulo livre.\n2. Digite largura, altura e profundidade em centímetros.\n3. Em **Altura do piso**, deixe 0 para móveis no chão. Num aéreo, use a distância do chão até a base dele, por exemplo 150.\n4. Toque em **Inserir**. O móvel aparece ao lado dos outros, já cotado.\nNo fim da lista há conjuntos prontos: **Cozinha completa** (balcão, aéreo e torre quente) e **Painel de TV** (rack e painel). Depois toque em cada móvel e em **Editar** para ajustar."},
  {id:"gerar",q:"Como transformo meu desenho em móvel 3D?",k:"gerar movel desenho transformar converter croqui virar 3d contorno desenhar armario",
@@ -3034,7 +3040,7 @@ const KB=[
  {id:"interior",q:"Como monto o interior com cabideiro e gavetas?",k:"interior cabide cabideiro gavetas internas maleiro prateleira roupeiro zona dentro",
   a:"1. Selecione o móvel e toque em **Editar**.\n2. No vão com porta, toque em **Editar interior**.\n3. Escolha um modelo pronto (Roupeiro, Cabide longo, Cabide duplo, Gavetas + prateleiras, Só prateleiras) ou ajuste as zonas. **+ Zona no topo** acrescenta mais uma.\nCada zona tem tipo, altura e quantidade. Prateleiras com 0 deixam o espaço livre (maleiro, no topo). O tubo de cabide fica 6 cm abaixo do topo da zona; para cabide, use 55 cm de profundidade ou mais. Toque em **INTERNO** para ver o interior no desenho."},
  {id:"acabamento",q:"Como mudo a cor do MDF?",k:"cor acabamento mdf branco carvalho grafite preto freijo nogueira madeira cores amendoa cinamomo tauari jequitiba veio textura",
-  a:"Selecione o móvel, toque em **Editar** e desça até **Acabamento da caixa** e **Acabamento das frentes**. São 18 cores de MDF, entre lisas (Branco TX, Grafite, Areia…) e madeiradas (Carvalho, Freijó, Nogueira, Amêndoa, Cinamomo, Tauari, Jequitibá). As madeiradas aparecem com veio no 3D. Os nomes são aproximados: confira o padrão no catálogo do seu fornecedor."},
+  a:"Selecione o móvel e toque em **Cor**, no cartão que sobe (ou em **Editar** e desça até o fim). Escolha em **Acabamento da caixa** e **Acabamento das frentes**. Com vários móveis selecionados, a cor escolhida vale para todos. Em **Cor das linhas** muda só o traço do desenho, não o MDF. São 18 cores de MDF, entre lisas (Branco TX, Grafite, Areia…) e madeiradas (Carvalho, Freijó, Nogueira, Amêndoa, Cinamomo, Tauari, Jequitibá). As madeiradas aparecem com veio no 3D. Os nomes são aproximados: confira o padrão no catálogo do seu fornecedor."},
  {id:"puxador",q:"Como escolho o puxador?",k:"puxador botao barra perfil cava toque fecho sem puxador alca",
   a:"Selecione o móvel, toque em **Editar** e, em **Puxador**, escolha **Barra**, **Botão**, **Perfil** (alumínio na borda, cobrado por metro), **Cava** (usinada na frente, sem ferragem) ou **Toque** (sem puxador, com fecho toque). O desenho, o 3D e o orçamento mudam juntos. O preço de cada tipo fica em **Orçamento**, em Ferragens."},
  {id:"aereo",q:"Como coloco um armário aéreo na altura certa?",k:"aereo altura piso parede suspenso pendurado elevar",
