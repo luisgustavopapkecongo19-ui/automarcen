@@ -582,8 +582,10 @@ function modGeom(m){
       if(PS==="nenhum"){hw.push++; return}
       if(PS==="cava"||PS==="perfil"){
         const sw=PS==="cava"?22:20, kind=PS==="cava"?"groove":"metal", dz=PS==="cava"?-8:0, dd=PS==="cava"?8:16;
-        if(dir==="h"){B(x0,y0+h0-sw,zz+dz,w0,sw,dd,kind,o); r2d.push(Object.assign({x:x0,y:y0+h0-sw,w:w0,h:sw,fill:PS==="cava"?"groove":"ink"},fl)); if(PS==="perfil") hw.perfil+=w0/1000}
-        else {const xs=side==="R"?x0+w0-sw:x0; B(xs,y0,zz+dz,sw,h0,dd,kind,o); r2d.push(Object.assign({x:xs,y:y0,w:sw,h:h0,fill:PS==="cava"?"groove":"ink"},fl)); if(PS==="perfil") hw.perfil+=h0/1000}
+        // a cava fica 1 mm para fora da frente nas faces à vista; rente a ela, o 3D pisca em riscos (z-fighting)
+        const e=PS==="cava"?1:0;
+        if(dir==="h"){B(x0-e,y0+h0-sw,zz+dz,w0+2*e,sw+e,dd+e,kind,o); r2d.push(Object.assign({x:x0,y:y0+h0-sw,w:w0,h:sw,fill:PS==="cava"?"groove":"ink"},fl)); if(PS==="perfil") hw.perfil+=w0/1000}
+        else {const xs=side==="R"?x0+w0-sw:x0; B(xs-e,y0-e,zz+dz,sw+2*e,h0+2*e,dd+e,kind,o); r2d.push(Object.assign({x:xs,y:y0,w:sw,h:h0,fill:PS==="cava"?"groove":"ink"},fl)); if(PS==="perfil") hw.perfil+=h0/1000}
         return;
       }
       hw.pull++;
@@ -2968,9 +2970,10 @@ function setView(v){
 }
 
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
-const APP_VER="v0.13.2 beta";
+const APP_VER="v0.13.3 beta";
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
+  {v:"v0.13.3 beta",items:["Puxador cava no 3D: agora aparece como uma faixa escura e limpa no alto da gaveta ou na borda da porta, sem os riscos que piscavam na frente."]},
   {v:"v0.13.2 beta",items:["Cor do móvel mais fácil de trocar: ao tocar num móvel no celular, o cartão tem o botão Cor, que abre direto nos acabamentos.","No desenho, o móvel mostra a cor escolhida mais forte, também enquanto está selecionado. Antes ele ficava apagado e parecia que a cor não tinha mudado.","Com vários móveis selecionados, dá para trocar o acabamento da caixa e das frentes de todos de uma vez. O antigo Cor desses casos agora se chama Cor das linhas, porque muda só o traço."]},
   {v:"v0.13.1 beta",items:["Tela limpa para quem começa: o primeiro projeto abre vazio, sem móveis de exemplo. Os modelos prontos e os conjuntos continuam no botão Móvel.","Com o projeto vazio, o meio da tela mostra por onde começar.","Os projetos que você já tinha continuam como estavam."]},
   {v:"v0.13 beta",items:["Preços em branco: os projetos novos não vêm mais com preços de exemplo, porque cada região tem um valor. Preencha chapas e ferragens com os preços dos seus fornecedores na aba Orçamento.","O último preço que você digitou de cada item fica guardado neste aparelho, e os próximos projetos já começam com ele.","Enquanto faltar algum preço, o Orçamento mostra o aviso Faltam preços, marca os campos vazios e o total aparece como incompleto. Antes de gerar o PDF, copiar o resumo ou mandar o 3D para o cliente, o AutoMarcen avisa.","Os projetos que você já tinha continuam com os preços que estavam neles."]},
