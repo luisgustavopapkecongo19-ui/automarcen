@@ -50,9 +50,9 @@ service cloud.firestore {
     }
 
     // dono do AutoMarcen: o único que lê as contribuições e publica os modelos aprovados.
-    // UID_DO_DONO = o "UID do usuário" da conta do dono, em Authentication → Users no console
+    // UID da conta do dono (Authentication → Users no console)
     function donoApp() {
-      return request.auth != null && request.auth.uid == "UID_DO_DONO";
+      return request.auth != null && request.auth.uid == "JeTDR8WREIhuSVvH2xhnu68jlGR2";
     }
     // modelos da comunidade (src/js/modelos.js): cópia sem identificação só da estrutura dos móveis, de quem ligou
     // "Ajudar a melhorar os modelos". Quem está na conta grava e apaga pelo id sorteado no aparelho, mas não lê nada daqui.
