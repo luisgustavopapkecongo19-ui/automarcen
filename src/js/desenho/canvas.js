@@ -30,7 +30,7 @@ function rp(c,pr,s,ox,oy,o,hi){
   if(pr.k==="line"){c.beginPath();c.moveTo(X(pr.a[0]),Y(pr.a[1]));c.lineTo(X(pr.b[0]),Y(pr.b[1]));c.stroke()}
   else if(pr.k==="poly"){
     c.beginPath(); pr.pts.forEach((p,i)=>i?c.lineTo(X(p[0]),Y(p[1])):c.moveTo(X(p[0]),Y(p[1]))); if(pr.close) c.closePath();
-    if(pr.fill){c.fillStyle=pr.fill==="ink"?col:pr.fill; c.globalAlpha=pr.fill==="ink"?1:(hi?o.fa*.7:o.fa); c.fill(); c.globalAlpha=1}
+    if(pr.fill){c.fillStyle=pr.fill==="ink"?col:pr.fill; c.globalAlpha=pr.fill==="ink"?1:pr.fin?.72:(hi?o.fa*.7:o.fa); c.fill(); c.globalAlpha=1}
     c.stroke();
   }
   else if(pr.k==="circle"){c.beginPath();c.arc(X(pr.c[0]),Y(pr.c[1]),pr.r*s,0,Math.PI*2);c.stroke()}

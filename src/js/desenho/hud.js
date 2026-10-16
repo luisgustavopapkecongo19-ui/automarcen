@@ -62,7 +62,7 @@ function modCard(m){
   const u=P.unit, f=v=>num(toU(v),u==="mm"?0:1), n=(m.secs||[]).length;
   return `<div class="ch"><div><b>${esc(m.name||"Móvel")}</b><small>${f(m.W)} × ${f(m.H)} × ${f(m.D)} ${u}${n?` · ${n} vão${n>1?"s":""}`:""}</small></div><button class="cx" data-c="close" aria-label="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <div class="cdims">${[["W","Largura"],["H","Altura"],["D","Profund."]].map(([k,l])=>`<label>${l} (${u})<input class="in n" data-q="${k}" value="${toU(m[k])}" inputmode="decimal" enterkeyhint="done"></label>`).join("")}</div>
-  <div class="cacts"><button data-c="edit" class="pri"><svg class="i" viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z"/></svg>Editar</button><button data-c="3d"><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg>3D</button><button data-c="dup" class="io" aria-label="Duplicar" title="Duplicar"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button><button data-c="del" class="del io" aria-label="Excluir" title="Excluir"><svg class="i" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg></button></div>`;
+  <div class="cacts"><button data-c="edit" class="pri"><svg class="i" viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z"/></svg>Editar</button><button data-c="3d"><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg>3D</button><button data-c="cor" aria-label="Cor do móvel"><span class="cdot" style="background:${finBg(FIN[m.ff]||FIN[0])}"></span>Cor</button><button data-c="dup" class="io" aria-label="Duplicar" title="Duplicar"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button><button data-c="del" class="del io" aria-label="Excluir" title="Excluir"><svg class="i" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg></button></div>`;
 }
 function updCtx(){
   const c=$("#ctx"); if(!sel.size||tool!=="select"){c.hidden=true; c.classList.remove("mcard"); return}
@@ -78,12 +78,14 @@ function updCtx(){
 }
 $("#ctx").addEventListener("click",e=>{const a=e.target.closest("[data-c]")?.dataset.c; if(!a) return;
   if(a==="close"){sel.clear(); renderPanel(); updCtx(); draw(); return}
-  if(a==="conv") return showConvert(); if(a==="edit") openPanel("props"); if(a==="del") delSel(); if(a==="dup") dupSel(); if(a==="rot") rotSel(); if(a==="3d") setView("3d")});
+  if(a==="conv") return showConvert(); if(a==="edit") openPanel("props"); if(a==="cor") showFin(); if(a==="del") delSel(); if(a==="dup") dupSel(); if(a==="rot") rotSel(); if(a==="3d") setView("3d")});
 $("#ctx").addEventListener("change",e=>{const k=e.target.dataset.q; if(!k) return; const one=selItems().length===1?selItems()[0]:null; if(!one||one.t!=="mod") return;
   const cm=parseN(e.target.value)/U(); if(!(cm>=10)){e.target.value=toU(one[k]); return toast("Use uma medida a partir de 10 cm")}
   pushUndo(); if(k==="H"){const bottom=one.y+one.H; one.H=cm; one.y=bottom-cm} else one[k]=cm; e.target.blur(); afterEdit()});
 $("#ctx").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.dataset.q){e.preventDefault(); e.target.blur()}});
 addEventListener("resize",()=>{updCtx(); updSave()});
+/* abre o painel já nas cores (acabamentos) do móvel */
+function showFin(){openPanel("props"); const g=$("#pbody [data-fb]")?.closest(".grp"); if(g) requestAnimationFrame(()=>g.scrollIntoView({block:"start",behavior:"smooth"}))}
 function delSel(){if(!sel.size) return; pushUndo(); P.items=P.items.filter(i=>!sel.has(i.id)); sel.clear(); afterEdit(); updCtx()}
 function dupSel(){if(!sel.size) return; pushUndo(); const d=P.grid*2, ns=new Set();
   for(const it of selItems()){const c=JSON.parse(JSON.stringify(it)); c.id=uid(); if(c.t==="mod"){c.x+=c.W; c.name=c.name+" (cópia)"} else translate(c,d,d); P.items.push(c); ns.add(c.id)}
