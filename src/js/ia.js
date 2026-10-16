@@ -21,7 +21,7 @@ async function iaConta(){
 async function iaHeaders(){
   const h={"Content-Type":"application/json","x-goog-api-key":FB_CFG.apiKey,"x-goog-api-client":"gl-js/automarcen fire/10.14.1"};
   try{h.Authorization="Firebase "+await FB.user.getIdToken()}catch(_){}
-  if(FB.appCheck){try{const t=await FB.appCheck.getToken(); if(t&&t.token) h["X-Firebase-AppCheck"]=t.token}catch(_){}}
+  if(FB.appCheck){try{const t=await Promise.race([FB.appCheck.getToken(),new Promise(ok=>setTimeout(ok,10000))]); if(t&&t.token) h["X-Firebase-AppCheck"]=t.token}catch(_){}} // sem o selo, o Firebase recusa e o app volta para o guia
   return h;
 }
 // foto do celular (3 a 8 MB) vira JPEG de até 1600 px: lê igual e sobe bem mais rápido
@@ -52,7 +52,7 @@ async function iaPedir(contents,opts){
   opts=opts||{};
   if(!FB.user) throw iaErr("login");
   if(!online()) throw iaErr("network");
-  if(IA.off) throw iaErr("off"); // o Firebase já recusou nesta abertura (App Check ou IA desligada): não gasta pedido do dia à toa
+  if(Date.now()<IA.off) throw iaErr("off"); // o Firebase recusou há pouco (App Check ou IA desligada): espera 2 min sem gastar pedido do dia
   await iaConta();
   const model=IA_MODELOS[opts.modelTier]||IA_MODELOS.quick, stream=!!opts.onText;
   const body={contents,generationConfig:Object.assign({temperature:.4},opts.json?{responseMimeType:"application/json"}:{})};
@@ -62,7 +62,7 @@ async function iaPedir(contents,opts){
   if(!res.ok){
     let msg=""; try{msg=JSON.stringify(await res.json())}catch(_){}
     console.warn("IA",res.status,msg);
-    if(res.status===401||res.status===403) IA.off=true;
+    if(res.status===401||res.status===403) IA.off=Date.now()+120000;
     throw iaErr(res.status===429?"rate_limited":res.status===400&&/image|inline/i.test(msg)?"image_rejected":res.status===401||res.status===403?"off":"error",msg);
   }
   if(!stream){ const j=await res.json(); return iaTexto(j) }
@@ -92,4 +92,4 @@ IA.json=async(prompt,opts)=>{
   try{return JSON.parse(t)}catch(_){ const m=t.match(/\{[\s\S]*\}/); if(m) return JSON.parse(m[0]); throw iaErr("error","JSON") }
 };
 IA.limits=async()=>({images:{mediaTypes:["image/*"]}});
-IA.gemini=true;
+IA.gemini=true; IA.off=0;
