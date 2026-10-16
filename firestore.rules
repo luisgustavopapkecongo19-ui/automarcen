@@ -2,7 +2,7 @@ rules_version = '2';
 // Regras do Firestore do AutoMarcen.
 // Cada pessoa só lê e grava a própria pasta users/{uid}/projetos, e só documentos no formato que o app grava
 // (src/js/salvar.js: writeProject e writeTomb), e o próprio contador de IA do dia (users/{uid}/uso). Os relatórios e o Exportar tudo leem os projetos do aparelho,
-// então não precisam de mais nada no banco. Todo o resto fica fechado.
+// então não precisam de mais nada no banco. Versão 4: modelos da comunidade (contribuicoes e modelos, no fim). Todo o resto fica fechado.
 // Para aplicar: console do Firebase → Firestore Database → Regras → colar tudo → Publicar.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -47,6 +47,28 @@ service cloud.firestore {
       allow update: if dono(uid) && dia == hoje()
         && request.resource.data.keys().hasOnly(["n"]) && request.resource.data.n == resource.data.n + 1
         && request.resource.data.n <= 50;
+    }
+
+    // dono do AutoMarcen: o único que lê as contribuições e publica os modelos aprovados.
+    // UID_DO_DONO = o "UID do usuário" da conta do dono, em Authentication → Users no console
+    function donoApp() {
+      return request.auth != null && request.auth.uid == "UID_DO_DONO";
+    }
+    // modelos da comunidade (src/js/modelos.js): cópia sem identificação só da estrutura dos móveis, de quem ligou
+    // "Ajudar a melhorar os modelos". Quem está na conta grava e apaga pelo id sorteado no aparelho, mas não lê nada daqui.
+    match /contribuicoes/{id} {
+      allow read: if donoApp();
+      allow delete: if request.auth != null;
+      allow create, update: if request.auth != null && id.matches("^[a-z0-9]{24}$")
+        && request.resource.data.keys().hasOnly(["v", "app", "n", "s", "quando"])
+        && request.resource.data.v == 1 && texto(request.resource.data.app, 20)
+        && request.resource.data.n is int && request.resource.data.n >= 1 && request.resource.data.n <= 30
+        && texto(request.resource.data.s, 20000) && request.resource.data.quando == request.time;
+    }
+    // modelos aprovados pelo dono: quem está na conta lê; só o dono grava
+    match /modelos/{id} {
+      allow read: if request.auth != null;
+      allow write: if donoApp();
     }
 
     // todo o resto fica fechado

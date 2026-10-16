@@ -1,12 +1,13 @@
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
 //#if app
-const APP_VER="v0.14 beta";
+const APP_VER="v0.15 beta";
 //#else
 const APP_VER="v0.13.2 beta";
 //#endif
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
 //#if app
+  {v:"v0.15 beta",items:["Modelos da comunidade, primeira parte: em ⋯ → Minha conta há a opção Ajudar a melhorar os modelos. Ela vem desligada.","Ligada, o app manda uma cópia sem identificação só do formato dos seus móveis (medidas, vãos, portas, gavetas, puxador e cor). Não vai nome, cliente, preço, telefone, foto nem a sua conta.","Os melhores formatos, revisados um a um, vão virar modelos prontos no botão Móvel."]},
   {v:"v0.14 beta",items:["Inteligência no app: com a conta entrada, o chat de ajuda responde com a IA do Google (Gemini), com base no guia do AutoMarcen.","Croqui por foto também no app: em Móvel, tire uma foto do desenho no papel e a IA monta o móvel com as medidas. Confira sempre antes de cortar.","Falar ou escrever entende frases com vários móveis quando há internet e a conta está entrada.","Cada conta tem até 50 pedidos de IA por dia. Sem conta ou sem internet, o chat responde pelo guia e Falar ou escrever entende as frases simples no aparelho."]},
 //#endif
   {v:"v0.13.2 beta",items:["Cor do móvel mais fácil de trocar: ao tocar num móvel no celular, o cartão tem o botão Cor, que abre direto nos acabamentos.","No desenho, o móvel mostra a cor escolhida mais forte, também enquanto está selecionado. Antes ele ficava apagado e parecia que a cor não tinha mudado.","Com vários móveis selecionados, dá para trocar o acabamento da caixa e das frentes de todos de uma vez. O antigo Cor desses casos agora se chama Cor das linhas, porque muda só o traço."]},
@@ -97,6 +98,10 @@ const KB=[
   a:"Os preços de chapas e ferragens vêm **em branco** porque mudam muito de uma região para outra. Abra a aba **Orçamento** e preencha com os preços dos seus fornecedores. Você só faz isso uma vez: o último preço de cada item fica guardado no aparelho e os próximos projetos já começam com ele. Os projetos antigos continuam com os preços que tinham."},
  {id:"cliente",q:"Como mando o orçamento para o cliente aprovar?",k:"cliente mandar enviar pdf whatsapp resumo proposta compartilhar aprovar aprovacao link 3d situacao aprovado recusado",go:"orcamento",
   a:"Na aba **Orçamento**:\n1. Em **Seu WhatsApp**, coloque o seu número. Ele fica guardado.\n2. **Gerar PDF** cria a proposta com 3D, desenho e valores, e com os botões **Aprovar pelo WhatsApp** e **Pedir ajuste**.\n3. **3D para o cliente** salva um arquivo que o cliente abre no celular para girar o móvel, abrir as portas e tocar em **Aprovar**.\n4. **Copiar resumo** copia um texto curto para colar no WhatsApp.\nQuando o cliente responder, marque a **Situação do orçamento** (Enviado, Aprovado ou Recusado). Ela aparece na lista de Projetos."},
+//#if app
+ {id:"modelos",q:"O que é Ajudar a melhorar os modelos?",k:"ajudar melhorar modelos comunidade compartilhar enviar dados anonimo privacidade lgpd permissao desligar formato moveis",go:"conta",
+  a:"É uma opção em **⋯ → Minha conta**, que vem **desligada**. Ligada, o app manda uma cópia **sem identificação** só do formato dos seus móveis: medidas, vãos, portas, gavetas, interior, puxador e cor. Com ela montamos modelos prontos melhores, que aparecem no botão **Móvel** depois de revisados um a um.\n**Não vai** nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta.\nPara parar, desmarque a opção: nada mais é enviado e o que saiu deste aparelho é apagado."},
+//#endif
  {id:"foto",q:"Dá para montar o móvel a partir de uma foto do croqui?",k:"foto croqui papel camera imagem tirar foto desenho a mao ler escanear",go:"inserir",
 //#if app
   a:"Sim. Toque em **Móvel** e depois em **Croqui por foto**. Tire ou escolha a foto do desenho no papel, de frente, com boa luz e as medidas legíveis. A IA lê o croqui e mostra o que entendeu. Confira e toque em **Inserir no projeto**. Precisa de internet e de estar com a conta entrada (**⋯ → Entrar na conta**). Cada conta tem até 50 pedidos de IA por dia, somando chat, foto e frases. Sempre confira as medidas antes de cortar."},
@@ -145,6 +150,9 @@ const KB=[
 const SUGS=["comecar","gerar","interior","cliente","naosalvo"];
 const ACTS={inserir:["Inserir móvel",()=>{setView("draw"); showInsert()}],exportar:["Abrir Exportar",()=>showExport()],projetos:["Abrir Projetos",()=>showProjects()],
   "3d":["Ver o 3D",()=>setView("3d")],pecas:["Ver peças e corte",()=>setView("parts")],orcamento:["Abrir o orçamento",()=>setView("quote")],guia:["Abrir o guia",()=>open(GUIDE_URL,"_blank","noopener")]};
+//#if app
+ACTS.conta=["Abrir Minha conta",()=>showAcct()];
+//#endif
 const norm=s=>String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ");
 const STOP=new Set("a o as os e de do da dos das em no na nos nas um uma uns umas para pra por com sem que como eu meu minha se nao sim ao aos onde qual quais quando porque por que ja mais muito tem ter fazer faco faz faco isso esse essa este esta e ou da dar consigo consegue posso pode quero preciso ele ela voce".split(" "));
 const toks=s=>norm(s).split(/\s+/).filter(w=>w.length>1&&!STOP.has(w));
