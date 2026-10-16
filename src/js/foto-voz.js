@@ -31,6 +31,8 @@ function insertSpec(spec){
 function specSummary(spec){
   return specToMods(spec).map(({tk,over})=>{const m=makeModule(tk,over); return `<li><b>${esc(m.name)}</b>: ${fmtL(m.W)} × ${fmtL(m.H)} × ${fmtL(m.D)} ${P.unit}${-(m.y+m.H)>0?`, a ${fmtL(-(m.y+m.H))} do piso`:""} · ${esc(m.secs.map(secLabel).join(", "))}</li>`}).join("");
 }
+// modelos aprovados da comunidade como referência para a IA (só na versão instalável; modelos.js)
+const specExemplos=()=>typeof mdExemplos==="function"?mdExemplos():"";
 const SPEC_FORMAT=`Responda só com JSON neste formato (medidas em centímetros):
 {"moveis":[{"nome":"Balcão pia","tipo":"balcao","largura":147,"altura":85,"profundidade":60,"altura_piso":0,"vaos":[{"largura":45,"tipo":"gavetas","qtd":4},{"largura":0,"tipo":"porta2","qtd":1}]}],"duvidas":"o que ficou em dúvida, em uma frase, ou vazio"}
 - tipo do móvel: balcao, aereo, gaveteiro, armario, roupeiro, estante, comoda, escrivaninha ou livre.
@@ -105,7 +107,7 @@ async function showPhoto(){
       const img=$("#spImg",el); img.src=URL.createObjectURL(f); img.hidden=false;
       const r=$("#spRes",el); r.innerHTML=`<p class="note">Lendo o croqui…</p>`;
       try{
-        const spec=await aiSpec(`A imagem é a foto de um croqui de marcenaria feito à mão (papel quadriculado ou liso), com medidas escritas. Identifique cada móvel desenhado, as medidas externas e a divisão em vãos (portas, gavetas, nichos), da esquerda para a direita. Se houver vista de frente e de lado, use a de lado para a profundidade.\n${SPEC_FORMAT}`,{images:[f],modelTier:"default"});
+        const spec=await aiSpec(`A imagem é a foto de um croqui de marcenaria feito à mão (papel quadriculado ou liso), com medidas escritas. Identifique cada móvel desenhado, as medidas externas e a divisão em vãos (portas, gavetas, nichos), da esquerda para a direita. Se houver vista de frente e de lado, use a de lado para a profundidade.\n${SPEC_FORMAT}${specExemplos()}`,{images:[f],modelTier:"default"});
         if(openDlg&&openDlg.contains(r)) specResult(el,spec);
       }catch(err){
         const c=err&&err.code; r.innerHTML=`<p class="warn">${c==="not_granted"?"A leitura foi recusada. Para usar, permita o uso do Claude quando ele pedir.":c==="image_rejected"?"Essa foto não pôde ser lida. Tente outra, em JPG ou PNG.":c==="rate_limited"?"Muitos pedidos agora. Tente de novo em instantes.":c==="quota"?"Você já usou os pedidos de IA de hoje. Amanhã volta; enquanto isso, use Falar ou escrever.":c==="login"?"Entre na conta para usar a leitura de foto.":c==="off"?"A leitura de foto ainda não está liberada neste app. Enquanto isso, use Falar ou escrever.":"Não consegui ler a foto agora. Tente de novo ou use Falar ou escrever."}</p>`;
@@ -141,7 +143,7 @@ function showVoice(){
       if(simple||!H.sample||!online()){ if(loc) specResult(el,loc,!simple&&(!H.sample||!online())?"Entendido no aparelho. Para frases com vários móveis, use com internet.":""); else specResult(el,{moveis:[]}); return }
 //#endif
       r.innerHTML=`<p class="note">Montando…</p>`;
-      try{const spec=await aiSpec(`Um marceneiro descreveu um ou mais móveis falando (pode ter erros de ditado):\n"""${txt.slice(0,1500)}"""\nMonte os móveis.\n${SPEC_FORMAT}`,{modelTier:"quick"}); specResult(el,spec)}
+      try{const spec=await aiSpec(`Um marceneiro descreveu um ou mais móveis falando (pode ter erros de ditado):\n"""${txt.slice(0,1500)}"""\nMonte os móveis.\n${SPEC_FORMAT}${specExemplos()}`,{modelTier:"quick"}); specResult(el,spec)}
       catch(_){ if(loc) specResult(el,loc,"Entendido no aparelho."); else r.innerHTML=`<p class="warn">Não entendi. Diga o tipo e as medidas, por exemplo: “balcão de 120 por 60 com duas portas”.</p>` }
     };
     $("[data-go2]",el).onclick=go;

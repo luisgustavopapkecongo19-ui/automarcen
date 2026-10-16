@@ -36,10 +36,11 @@ function fbUse(u){
   if(prev&&(!u||prev!==u.uid)){SV.dirty.clear(); SV.dead.clear()}
   if(!u){SV.cloud="off"; updSave(); updAcct(); return}
   FB.unsub=cloudAttach(FB.db.collection("users").doc(u.uid).collection("projetos"));
-  updAcct(); contribAll();
+  updAcct(); contribAll(); mdCarregar(ehDono());
 }
 function updAcct(){
   const b=document.querySelector('[data-m="acct"] span'); if(b) b.textContent=FB.user?"Minha conta":"Entrar na conta";
+  const ap=document.querySelector('[data-m="aprovar"]'); if(ap) ap.hidden=!ehDono();
   if(openDlg&&openDlg.dataset.kind==="acct") showAcct();
 }
 const FB_ERR={

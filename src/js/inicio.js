@@ -24,7 +24,7 @@ $("#bMore").onclick=e=>{e.stopPropagation(); const m=$("#moreMenu"); m.hidden=!m
 $("#moreMenu").addEventListener("click",e=>{const a=e.target.closest("[data-m]")?.dataset.m; if(!a) return; closeMore();
   if(a==="look") showLook(); if(a==="export") showExport(); if(a==="proj") $("#bProj").click(); if(a==="org") showOrg();
 //#if app
-  if(a==="acct") showAcct();
+  if(a==="acct") showAcct(); if(a==="aprovar") showAprovar();
 //#endif
 });
 addEventListener("click",e=>{if(!$("#moreMenu").hidden&&!e.target.closest("#moreMenu,#bMore")) closeMore()});
