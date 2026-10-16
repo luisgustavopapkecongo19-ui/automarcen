@@ -9,7 +9,7 @@ const FB_CFG={
   appId:"1:1035263726882:web:3a259b672c3913fd9d017b"
 };
 // chave do site do reCAPTCHA Enterprise para o App Check (protege a IA). Vazia = App Check desligado
-const FB_RECAPTCHA="";
+const FB_RECAPTCHA="6LdyEvItAAAAAP9sC8uPAKoiEVGUE0V8RkhnCVl4";
 const FB={auth:null,db:null,user:null,unsub:null,ready:null,watching:false,known:false,appCheck:null};
 function fbLoad(){
   if(FB.ready) return FB.ready;

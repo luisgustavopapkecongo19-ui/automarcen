@@ -25,7 +25,7 @@ Sem conta, dá para levar um projeto com **Exportar → Projeto (.json)** e depo
 - O chat de ajuda, o **Croqui por foto** e as frases longas de **Falar ou escrever** usam o Gemini pelo Firebase AI Logic (API Gemini Developer, plano Spark, sem cartão). Código em `src/js/ia.js`; a versão do claude.ai continua com o Claude.
 - Só quem entrou na conta usa a IA. Cada conta tem até 50 pedidos por dia (`IA_LIMITE`), contados em `users/{uid}/uso/{dia}` e conferidos pelas regras do Firestore.
 - Modelos: `gemini-3.5-flash-lite` no chat e nas frases, `gemini-3.5-flash` na foto (`IA_MODELOS`).
-- App Check (obrigatório no AI Logic a partir de 2/11/2026): coloque a chave do site do reCAPTCHA Enterprise em `FB_RECAPTCHA` (`src/js/conta.js`). Vazia, o App Check fica desligado.
+- App Check (já exigido no AI Logic): o app usa a chave do site do reCAPTCHA Enterprise / Fraud Defense em `FB_RECAPTCHA` (`src/js/conta.js`), registrada no App Check do Firebase para o domínio do GitHub Pages. Sem o token, o Firebase recusa e o app volta para o guia.
 
 ## Código
 O código fica em `src/`, separado em partes. Mude sempre ali e depois rode:
