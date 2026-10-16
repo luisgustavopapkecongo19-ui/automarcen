@@ -383,6 +383,7 @@ textarea.code{font:calc(12px*var(--fs,1))/1.45 var(--mono);min-height:150px;word
     </div>
     <div class="more" id="moreMenu" role="menu" hidden>
       <button role="menuitem" data-m="acct"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span>Entrar na conta</span></button>
+      <button role="menuitem" data-m="aprovar" hidden><svg class="i" viewBox="0 0 24 24"><path d="M4 12.5 9 17.5 20 6.5"/></svg>Aprovar modelos</button>
       <button role="menuitem" data-m="look"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17A8.5 8.5 0 0 0 12 3.5z" fill="currentColor"/></svg>Aparência</button>
       <button role="menuitem" data-m="export"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Exportar</button>
       <button role="menuitem" data-m="org"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Clientes e relatórios</button>
@@ -1068,10 +1069,11 @@ function fbUse(u){
   if(prev&&(!u||prev!==u.uid)){SV.dirty.clear(); SV.dead.clear()}
   if(!u){SV.cloud="off"; updSave(); updAcct(); return}
   FB.unsub=cloudAttach(FB.db.collection("users").doc(u.uid).collection("projetos"));
-  updAcct(); contribAll();
+  updAcct(); contribAll(); mdCarregar(ehDono());
 }
 function updAcct(){
   const b=document.querySelector('[data-m="acct"] span'); if(b) b.textContent=FB.user?"Minha conta":"Entrar na conta";
+  const ap=document.querySelector('[data-m="aprovar"]'); if(ap) ap.hidden=!ehDono();
   if(openDlg&&openDlg.dataset.kind==="acct") showAcct();
 }
 const FB_ERR={
@@ -1320,6 +1322,122 @@ addEventListener("online",()=>{if(CT.fila.size) contribFlush()});
 function contribBlock(){
   return `<div class="grp"><label class="chk"><input type="checkbox" id="aMod"${ctOk()?" checked":""}> <span><b>Ajudar a melhorar os modelos</b></span></label>
     <span class="note">Manda uma cópia <b>sem identificação</b> só do formato dos seus móveis: medidas, vãos, portas, gavetas, interior, puxador e cor. Com ela montamos modelos prontos melhores para todos. <b>Não vai</b> nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta. Desligado, nada é enviado; ao desligar, o que saiu deste aparelho é apagado.</span></div>`;
+}
+
+/* ----- etapa 2: o dono aprova; os aprovados viram "Modelos da comunidade" no botão Móvel e exemplos para a IA ----- */
+const DONO_UID="JeTDR8WREIhuSVvH2xhnu68jlGR2"; // o mesmo de donoApp() em firestore.rules
+const MD={cache:"automarcen-modelos-cache", lista:null, at:0, busy:null};
+const ehDono=()=>!!(FB.user&&FB.user.uid===DONO_UID);
+const MD_TIPO={balcao:"Balcão",aereo:"Aéreo",torre:"Torre",gaveteiro:"Gaveteiro",comoda:"Cômoda",escrivaninha:"Escrivaninha",rack:"Rack",estante:"Estante",armario:"Armário",roupeiro:"Roupeiro",outro:"Módulo"};
+const mdParse=s=>{try{const o=JSON.parse(s); return Array.isArray(o&&o.moveis)?o.moveis.slice(0,30):[]}catch(_){return []}};
+// estrutura (como sai de ctMovel) → móvel de verdade
+function mdMod(o,dx){
+  const tk=TPL[o.tipo]?o.tipo:"livre";
+  const m=makeModule(tk,{name:MD_TIPO[o.tipo]||"Módulo",W:+o.W||80,H:+o.H||80,D:+o.D||50,x:(+o.x||0)+(dx||0),elev:Math.max(0,+o.elev||0),
+    plinth:Math.max(0,+o.plinth||0),pull:o.pull||"barra",fb:+o.fb||0,ff:+o.ff||0,secs:JSON.parse(JSON.stringify(o.secs&&o.secs.length?o.secs:[{w:0,type:"porta",n:1}]))});
+  return m;
+}
+const mdLinha=o=>{const m=mdMod(o,0); return `${MD_TIPO[o.tipo]||"Módulo"} ${fmtL(m.W)} × ${fmtL(m.H)} × ${fmtL(m.D)}${o.elev>0?`, a ${fmtL(o.elev)} do piso`:""} · ${m.secs.map(secLabel).join(", ")}`};
+function mdNome(ms){
+  if(ms.length===1){const m=mdMod(ms[0],0); return `${MD_TIPO[ms[0].tipo]||"Módulo"} ${num(m.W)}×${num(m.H)}`}
+  const t=[...new Set(ms.map(o=>MD_TIPO[o.tipo]||"Módulo"))]; return "Conjunto: "+t.slice(0,3).join(", ").toLowerCase();
+}
+// vista de frente em SVG (só traço, segue o tema)
+function mdSvg(ms,w,h){
+  const R=[]; let x0=1e9,x1=-1e9,y1=-1e9;
+  for(const o of ms){
+    const m=mdMod(o,0), g=modGeom(m), ox=(+o.x||0)*10, oy=Math.max(0,+o.elev||0)*10;
+    for(const r of g.r2d){ if(r.int) continue; const a=ox+r.x, b=oy+r.y+r.h; R.push([a,b,r.w,r.h,r.fill]); x0=Math.min(x0,a); x1=Math.max(x1,a+r.w); y1=Math.max(y1,b) }
+  }
+  if(!R.length) return "";
+  const W=x1-x0||1, H=y1||1, pad=Math.max(W,H)*.04;
+  return `<svg viewBox="${x0-pad} ${-pad} ${W+2*pad} ${H+2*pad}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet" style="stroke:currentColor;fill:none;stroke-width:${(Math.max(W,H)/90).toFixed(1)}">`+
+    R.map(([a,b,rw,rh,f])=>`<rect x="${a.toFixed(0)}" y="${(y1-b).toFixed(0)}" width="${rw.toFixed(0)}" height="${rh.toFixed(0)}"${f==="front"?' style="fill:currentColor;fill-opacity:.12"':f==="ink"?' style="fill:currentColor"':""}/>`).join("")+"</svg>";
+}
+/* modelos aprovados: guardados neste aparelho e renovados de 6 em 6 horas (ou na hora, para o dono) */
+function mdLocal(){ if(MD.lista) return MD.lista; try{const o=JSON.parse(lsGet(MD.cache)||"null"); if(o&&Array.isArray(o.lista)){MD.lista=o.lista; MD.at=+o.at||0}}catch(_){} return MD.lista||[] }
+function mdCarregar(forca){
+  mdLocal();
+  if(!FB.user||!FB.db||!online()) return Promise.resolve(MD.lista||[]);
+  if(!forca&&Date.now()-MD.at<6*3600e3) return Promise.resolve(MD.lista);
+  if(MD.busy) return MD.busy;
+  MD.busy=FB.db.collection("modelos").orderBy("criado","desc").limit(60).get().then(snap=>{
+    MD.lista=snap.docs.map(d=>{const x=d.data(); return {id:d.id,nome:String(x.nome||"Modelo").slice(0,60),s:String(x.s||"")}}).filter(x=>mdParse(x.s).length);
+    MD.at=Date.now(); lsSet(MD.cache,JSON.stringify({at:MD.at,lista:MD.lista})); return MD.lista;
+  }).catch(e=>{console.warn("modelos",e); return MD.lista||[]}).finally(()=>{MD.busy=null});
+  return MD.busy;
+}
+// parte do Inserir móvel (dialogos.js): botões dos modelos da comunidade
+function mdBotoes(){
+  const L=mdLocal(); if(!L.length) return "";
+  return `<span class="lb">Modelos da comunidade</span><div class="tpls" data-com>${L.map(x=>`<button class="tpl" data-t="com_${esc(x.id)}" aria-pressed="false">${mdSvg(mdParse(x.s),56,48)}${esc(x.nome)}</button>`).join("")}</div>`;
+}
+function mdForm(id){
+  const x=mdLocal().find(q=>q.id===id); if(!x) return "";
+  const ms=mdParse(x.s);
+  return `<p class="note">Modelo aprovado, montado a partir de móveis de marceneiros que usam o AutoMarcen. Depois ajuste as medidas no painel.</p><ul class="note" style="margin:0;padding-left:18px">${ms.map(o=>`<li>${esc(mdLinha(o))}</li>`).join("")}</ul><label class="f"><span class="lb">Nome</span><input class="in" id="iN" value="${esc(x.nome)}"></label>`;
+}
+function mdInserir(id,nome){
+  const x=mdLocal().find(q=>q.id===id); if(!x) return;
+  const ms=mdParse(x.s), mods=P.items.filter(i=>i.t==="mod"), x0=mods.length?Math.max(...mods.map(m=>m.x+m.W))+30:0, ids=[];
+  pushUndo();
+  for(const o of ms){const m=mdMod(o,x0); if(ms.length===1&&nome) m.name=nome.slice(0,40); P.items.push(m); ids.push(m.id)}
+  sel=new Set(ids); closeDlg(); setTool("select"); afterEdit(); updCtx(); fit();
+  toast(ms.length>1?`${ms.length} móveis inseridos. Toque em cada um para ajustar`:"Móvel inserido. Toque em Editar para ajustar");
+}
+// exemplos para a IA (foto e frase): no formato que ela responde, poucos e curtos
+function mdExemplos(){
+  const L=mdLocal().slice(0,6); if(!L.length) return "";
+  const ex=L.map(x=>JSON.stringify({moveis:mdParse(x.s).slice(0,4).map(o=>({tipo:TPL[o.tipo]?o.tipo:"livre",largura:o.W,altura:o.H,profundidade:o.D,altura_piso:o.elev||0,
+    vaos:(o.secs||[]).map(s=>Object.assign({largura:s.w||0,tipo:s.type,qtd:s.n||0},s.lv?{folhas:s.lv}:{}))}))})).join("\n");
+  return `\nModelos que marceneiros do AutoMarcen aprovaram (servem só de referência de proporções e divisões comuns quando a foto ou a frase não disser; nunca troque uma medida informada por eles):\n${ex.slice(0,3000)}`;
+}
+
+/* tela do dono: contribuições → aprovar (vira modelo) ou recusar (apaga). Iguais aparecem juntas */
+async function showAprovar(aba){
+  if(!ehDono()) return;
+  aba=aba||"novos";
+  dlg(`<h2>Aprovar modelos</h2><div class="seg"><button data-aba="novos" aria-pressed="${aba==="novos"}">Enviados</button><button data-aba="pub" aria-pressed="${aba==="pub"}">Publicados</button></div><div id="apL"><p class="note">Carregando…</p></div><div class="row act"><button class="btn ghost" data-x>Fechar</button></div>`,async el=>{
+    $("[data-x]",el).onclick=closeDlg;
+    $$("[data-aba]",el).forEach(b=>b.onclick=()=>showAprovar(b.dataset.aba));
+    const box=$("#apL",el), vivo=()=>openDlg&&openDlg.contains(box);
+    if(!online()){box.innerHTML=`<p class="warn">Sem internet. Conecte-se para ver os modelos.</p>`; return}
+    try{
+      if(aba==="pub"){
+        const L=await mdCarregar(true); if(!vivo()) return;
+        box.innerHTML=L.length?L.map(x=>`<div class="callout" style="grid-template-columns:auto 1fr;align-items:center">${mdSvg(mdParse(x.s),72,60)}<div><b>${esc(x.nome)}</b><ul class="note" style="margin:4px 0;padding-left:18px">${mdParse(x.s).map(o=>`<li>${esc(mdLinha(o))}</li>`).join("")}</ul><button class="btn sm" data-tirar="${esc(x.id)}">Tirar do app</button></div></div>`).join(""):`<p class="note">Nenhum modelo publicado ainda.</p>`;
+        box.onclick=async e=>{const b=e.target.closest("[data-tirar]"); if(!b) return; b.disabled=true;
+          try{await FB.db.collection("modelos").doc(b.dataset.tirar).delete(); await mdCarregar(true); toast("Modelo tirado do app"); showAprovar("pub")}catch(err){b.disabled=false; toast("Não deu certo. Tente de novo")}};
+        return;
+      }
+      const snap=await FB.db.collection("contribuicoes").orderBy("quando","desc").limit(100).get(); if(!vivo()) return;
+      const grupos=new Map();
+      for(const d of snap.docs){const x=d.data(), ms=mdParse(x.s); if(!ms.length) continue; const k=JSON.stringify(ms);
+        if(!grupos.has(k)) grupos.set(k,{ms,ids:[],quando:x.quando&&x.quando.toDate?x.quando.toDate():null}); grupos.get(k).ids.push(d.id)}
+      const G=[...grupos.values()];
+      if(!G.length){box.innerHTML=`<p class="note">Nada novo por enquanto. Os móveis chegam aqui quando alguém liga “Ajudar a melhorar os modelos” em Minha conta.</p>`; return}
+      box.innerHTML=`<p class="note">${G.length} formato${G.length>1?"s":""} enviado${G.length>1?"s":""}. Aprovar publica para todos no botão Móvel e serve de exemplo para a IA. Recusar apaga.</p>`+G.map((g,i)=>`<div class="callout" data-g="${i}">
+        <div style="display:flex;gap:10px;align-items:center">${mdSvg(g.ms,96,72)}<div class="note">${g.ids.length>1?`<b>${g.ids.length} pessoas enviaram igual</b><br>`:""}${g.quando?g.quando.toLocaleDateString("pt-BR"):""}</div></div>
+        ${g.ms.map((o,j)=>`<label class="chk"><input type="checkbox" data-mv="${j}" checked> <span>${esc(mdLinha(o))}</span></label>`).join("")}
+        <label class="f"><span class="lb">Nome do modelo</span><input class="in" data-nome value="${esc(mdNome(g.ms))}" maxlength="60"></label>
+        <div class="row"><button class="btn ghost" data-rec>Recusar</button><button class="btn pri" data-ok>Aprovar</button></div></div>`).join("");
+      box.onclick=async e=>{
+        const b=e.target.closest("[data-ok],[data-rec]"); if(!b) return;
+        const c=b.closest("[data-g]"), g=G[+c.dataset.g]; $$("button",c).forEach(x=>x.disabled=true);
+        try{
+          if(b.matches("[data-ok]")){
+            const ms=g.ms.filter((_,j)=>$(`[data-mv="${j}"]`,c).checked); if(!ms.length){$$("button",c).forEach(x=>x.disabled=false); return toast("Marque pelo menos um móvel")}
+            const x0=Math.min(...ms.map(o=>+o.x||0)), lim=ms.map(o=>Object.assign({},o,{x:ctN((+o.x||0)-x0)}));
+            await FB.db.collection("modelos").add({nome:$("[data-nome]",c).value.trim().slice(0,60)||mdNome(lim),n:lim.length,s:JSON.stringify({moveis:lim}),criado:firebase.firestore.FieldValue.serverTimestamp()});
+            mdCarregar(true);
+          }
+          for(const id of g.ids) await FB.db.collection("contribuicoes").doc(id).delete();
+          c.remove(); toast(b.matches("[data-ok]")?"Aprovado: já aparece em Móvel → Modelos da comunidade":"Recusado e apagado");
+          if(!$("[data-g]",box)) box.innerHTML=`<p class="note">Tudo revisado.</p>`;
+        }catch(err){ console.warn(err); $$("button",c).forEach(x=>x.disabled=false); toast(err&&err.code==="permission-denied"?"O Firestore recusou: confira se as regras v4 estão publicadas":"Não deu certo. Tente de novo") }
+      };
+    }catch(err){ console.warn(err); if(vivo()) box.innerHTML=`<p class="warn">Não consegui abrir${err&&err.code==="permission-denied"?": o Firestore recusou (regras v4 e o seu UID)":""}. Tente de novo.</p>` }
+  },"aprovar");
 }
 /* ===================== utilidades de desenho ===================== */
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -2312,7 +2430,9 @@ function askLayer(){
 }
 function showInsert(){
   let cur="balcao";
-  const form=k=>{ if(k.startsWith("kit_")){const K=KITS[k.slice(4)]; return `<p class="note">${esc(K.note)}</p><label class="f"><span class="lb">Nome</span><input class="in" id="iN" value="${esc(K.name)}"></label>`}
+  const form=k=>{
+    if(k.startsWith("com_")) return mdForm(k.slice(4));
+    if(k.startsWith("kit_")){const K=KITS[k.slice(4)]; return `<p class="note">${esc(K.note)}</p><label class="f"><span class="lb">Nome</span><input class="in" id="iN" value="${esc(K.name)}"></label>`}
     const t=TPL[k]; return `<div class="r3">
       <label class="f"><span class="lb">Largura</span>${uIn("W",toU(t.W)).replace('data-k="W"','id="iW"')}</label>
       <label class="f"><span class="lb">Altura</span>${uIn("H",toU(t.H)).replace('data-k="H"','id="iH"')}</label>
@@ -2323,12 +2443,16 @@ function showInsert(){
     <div class="quick2"><button class="btn" data-photo><svg class="i" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Croqui por foto</button><button class="btn" data-voice><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Falar ou escrever</button></div>
     <p>Ou escolha um modelo. Depois você ajusta vãos, portas, gavetas e acabamentos no painel.</p>
     <div class="tpls">${Object.keys(TPL).map(k=>`<button class="tpl" data-t="${k}" aria-pressed="${k===cur}"><svg viewBox="0 0 56 48">${TPL_ICON[k]}</svg>${TPL[k].name}</button>`).join("")}${Object.keys(KITS).map(k=>`<button class="tpl" data-t="kit_${k}" aria-pressed="false"><svg viewBox="0 0 56 48">${TPL_ICON["kit_"+k]}</svg>${KITS[k].name}</button>`).join("")}</div>
+    <div id="iCom">${typeof mdBotoes==="function"?mdBotoes():""}</div>
     <div id="iForm">${form(cur)}</div>
     <div class="row act"><button class="btn ghost" data-x>Cancelar</button><button class="btn pri" data-ok>Inserir</button></div>`,el=>{
-    $(".tpls",el).onclick=e=>{const b=e.target.closest("[data-t]"); if(!b) return; cur=b.dataset.t; $$("[data-t]",el).forEach(x=>x.setAttribute("aria-pressed",x===b)); $("#iForm",el).innerHTML=form(cur)};
+    el.addEventListener("click",e=>{const b=e.target.closest(".tpl[data-t]"); if(!b) return; cur=b.dataset.t; $$("[data-t]",el).forEach(x=>x.setAttribute("aria-pressed",x===b)); $("#iForm",el).innerHTML=form(cur)});
+    // modelos da comunidade: mostra os guardados e renova em segundo plano
+    mdCarregar().then(()=>{const c=$("#iCom",el); if(c&&openDlg&&openDlg.contains(c)&&!cur.startsWith("com_")) c.innerHTML=mdBotoes()});
     $("[data-x]",el).onclick=closeDlg; $("[data-photo]",el).onclick=showPhoto; $("[data-voice]",el).onclick=showVoice;
     $("[data-ok]",el).onclick=()=>{
       if(cur.startsWith("kit_")) return insertKit(cur.slice(4),$("#iN",el).value.trim());
+      if(cur.startsWith("com_")) return mdInserir(cur.slice(4),$("#iN",el).value.trim());
       const g=id=>parseN($(id,el).value)/U();
       const W=g("#iW"),H=g("#iH"),D=g("#iD"),E=Math.max(0,g("#iE")||0);
       if(!(W>=10&&H>=10&&D>=10)) return toast("Confira as medidas: mínimo de 10 cm");
@@ -2387,6 +2511,8 @@ function insertSpec(spec){
 function specSummary(spec){
   return specToMods(spec).map(({tk,over})=>{const m=makeModule(tk,over); return `<li><b>${esc(m.name)}</b>: ${fmtL(m.W)} × ${fmtL(m.H)} × ${fmtL(m.D)} ${P.unit}${-(m.y+m.H)>0?`, a ${fmtL(-(m.y+m.H))} do piso`:""} · ${esc(m.secs.map(secLabel).join(", "))}</li>`}).join("");
 }
+// modelos aprovados da comunidade como referência para a IA (só na versão instalável; modelos.js)
+const specExemplos=()=>typeof mdExemplos==="function"?mdExemplos():"";
 const SPEC_FORMAT=`Responda só com JSON neste formato (medidas em centímetros):
 {"moveis":[{"nome":"Balcão pia","tipo":"balcao","largura":147,"altura":85,"profundidade":60,"altura_piso":0,"vaos":[{"largura":45,"tipo":"gavetas","qtd":4},{"largura":0,"tipo":"porta2","qtd":1}]}],"duvidas":"o que ficou em dúvida, em uma frase, ou vazio"}
 - tipo do móvel: balcao, aereo, gaveteiro, armario, roupeiro, estante, comoda, escrivaninha ou livre.
@@ -2457,7 +2583,7 @@ async function showPhoto(){
       const img=$("#spImg",el); img.src=URL.createObjectURL(f); img.hidden=false;
       const r=$("#spRes",el); r.innerHTML=`<p class="note">Lendo o croqui…</p>`;
       try{
-        const spec=await aiSpec(`A imagem é a foto de um croqui de marcenaria feito à mão (papel quadriculado ou liso), com medidas escritas. Identifique cada móvel desenhado, as medidas externas e a divisão em vãos (portas, gavetas, nichos), da esquerda para a direita. Se houver vista de frente e de lado, use a de lado para a profundidade.\n${SPEC_FORMAT}`,{images:[f],modelTier:"default"});
+        const spec=await aiSpec(`A imagem é a foto de um croqui de marcenaria feito à mão (papel quadriculado ou liso), com medidas escritas. Identifique cada móvel desenhado, as medidas externas e a divisão em vãos (portas, gavetas, nichos), da esquerda para a direita. Se houver vista de frente e de lado, use a de lado para a profundidade.\n${SPEC_FORMAT}${specExemplos()}`,{images:[f],modelTier:"default"});
         if(openDlg&&openDlg.contains(r)) specResult(el,spec);
       }catch(err){
         const c=err&&err.code; r.innerHTML=`<p class="warn">${c==="not_granted"?"A leitura foi recusada. Para usar, permita o uso do Claude quando ele pedir.":c==="image_rejected"?"Essa foto não pôde ser lida. Tente outra, em JPG ou PNG.":c==="rate_limited"?"Muitos pedidos agora. Tente de novo em instantes.":c==="quota"?"Você já usou os pedidos de IA de hoje. Amanhã volta; enquanto isso, use Falar ou escrever.":c==="login"?"Entre na conta para usar a leitura de foto.":c==="off"?"A leitura de foto ainda não está liberada neste app. Enquanto isso, use Falar ou escrever.":"Não consegui ler a foto agora. Tente de novo ou use Falar ou escrever."}</p>`;
@@ -2489,7 +2615,7 @@ function showVoice(){
       const loc=parseSpeech(txt), r=$("#spRes",el), nt=txt.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""), kinds=(nt.match(/\b(balcao|aereo|armario|gaveteiro|roupeiro|estante|comoda|escrivaninha|guarda roupa|torre|painel|rack)\b/g)||[]).length, simple=loc&&loc.moveis[0].largura&&kinds<=1&&!/;/.test(nt);
       if(simple||!FB.user||!online()){ if(loc) specResult(el,loc,!simple&&!online()?"Entendido no aparelho. Para frases com vários móveis, use com internet.":!simple&&!FB.user?"Entendido no aparelho. Se tiver mais de um móvel, descreva um de cada vez, ou entre na conta para a IA entender a frase toda.":""); else specResult(el,{moveis:[]}); return }
       r.innerHTML=`<p class="note">Montando…</p>`;
-      try{const spec=await aiSpec(`Um marceneiro descreveu um ou mais móveis falando (pode ter erros de ditado):\n"""${txt.slice(0,1500)}"""\nMonte os móveis.\n${SPEC_FORMAT}`,{modelTier:"quick"}); specResult(el,spec)}
+      try{const spec=await aiSpec(`Um marceneiro descreveu um ou mais móveis falando (pode ter erros de ditado):\n"""${txt.slice(0,1500)}"""\nMonte os móveis.\n${SPEC_FORMAT}${specExemplos()}`,{modelTier:"quick"}); specResult(el,spec)}
       catch(_){ if(loc) specResult(el,loc,"Entendido no aparelho."); else r.innerHTML=`<p class="warn">Não entendi. Diga o tipo e as medidas, por exemplo: “balcão de 120 por 60 com duas portas”.</p>` }
     };
     $("[data-go2]",el).onclick=go;
@@ -3265,9 +3391,10 @@ function setView(v){
 }
 
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
-const APP_VER="v0.15 beta";
+const APP_VER="v0.16 beta";
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
+  {v:"v0.16 beta",items:["Modelos da comunidade: em Móvel, abaixo dos modelos prontos, aparecem os móveis e conjuntos que marceneiros que usam o AutoMarcen montaram e que foram revisados um a um. Toque e insira, depois ajuste as medidas.","A IA do Croqui por foto e do Falar ou escrever usa esses modelos aprovados como referência de proporções quando a foto ou a frase não diz tudo. As medidas que você der continuam valendo."]},
   {v:"v0.15 beta",items:["Modelos da comunidade, primeira parte: em ⋯ → Minha conta há a opção Ajudar a melhorar os modelos. Ela vem desligada.","Ligada, o app manda uma cópia sem identificação só do formato dos seus móveis (medidas, vãos, portas, gavetas, puxador e cor). Não vai nome, cliente, preço, telefone, foto nem a sua conta.","Os melhores formatos, revisados um a um, vão virar modelos prontos no botão Móvel."]},
   {v:"v0.14.1 beta",items:["Puxador cava no 3D: agora aparece como uma faixa escura e limpa no alto da gaveta ou na borda da porta, sem os riscos que piscavam na frente."]},
   {v:"v0.14 beta",items:["Inteligência no app: com a conta entrada, o chat de ajuda responde com a IA do Google (Gemini), com base no guia do AutoMarcen.","Croqui por foto também no app: em Móvel, tire uma foto do desenho no papel e a IA monta o móvel com as medidas. Confira sempre antes de cortar.","Falar ou escrever entende frases com vários móveis quando há internet e a conta está entrada.","Cada conta tem até 50 pedidos de IA por dia. Sem conta ou sem internet, o chat responde pelo guia e Falar ou escrever entende as frases simples no aparelho."]},
@@ -3359,8 +3486,8 @@ const KB=[
   a:"Os preços de chapas e ferragens vêm **em branco** porque mudam muito de uma região para outra. Abra a aba **Orçamento** e preencha com os preços dos seus fornecedores. Você só faz isso uma vez: o último preço de cada item fica guardado no aparelho e os próximos projetos já começam com ele. Os projetos antigos continuam com os preços que tinham."},
  {id:"cliente",q:"Como mando o orçamento para o cliente aprovar?",k:"cliente mandar enviar pdf whatsapp resumo proposta compartilhar aprovar aprovacao link 3d situacao aprovado recusado",go:"orcamento",
   a:"Na aba **Orçamento**:\n1. Em **Seu WhatsApp**, coloque o seu número. Ele fica guardado.\n2. **Gerar PDF** cria a proposta com 3D, desenho e valores, e com os botões **Aprovar pelo WhatsApp** e **Pedir ajuste**.\n3. **3D para o cliente** salva um arquivo que o cliente abre no celular para girar o móvel, abrir as portas e tocar em **Aprovar**.\n4. **Copiar resumo** copia um texto curto para colar no WhatsApp.\nQuando o cliente responder, marque a **Situação do orçamento** (Enviado, Aprovado ou Recusado). Ela aparece na lista de Projetos."},
- {id:"modelos",q:"O que é Ajudar a melhorar os modelos?",k:"ajudar melhorar modelos comunidade compartilhar enviar dados anonimo privacidade lgpd permissao desligar formato moveis",go:"conta",
-  a:"É uma opção em **⋯ → Minha conta**, que vem **desligada**. Ligada, o app manda uma cópia **sem identificação** só do formato dos seus móveis: medidas, vãos, portas, gavetas, interior, puxador e cor. Com ela montamos modelos prontos melhores, que aparecem no botão **Móvel** depois de revisados um a um.\n**Não vai** nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta.\nPara parar, desmarque a opção: nada mais é enviado e o que saiu deste aparelho é apagado."},
+ {id:"modelos",q:"O que é Ajudar a melhorar os modelos?",k:"ajudar melhorar modelos comunidade da comunidade aprovados compartilhar enviar dados anonimo privacidade lgpd permissao desligar formato moveis",go:"conta",
+  a:"É uma opção em **⋯ → Minha conta**, que vem **desligada**. Ligada, o app manda uma cópia **sem identificação** só do formato dos seus móveis: medidas, vãos, portas, gavetas, interior, puxador e cor. Com ela montamos modelos prontos melhores, que aparecem em **Móvel → Modelos da comunidade** depois de revisados um a um. A IA também usa os modelos aprovados como referência.\n**Não vai** nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta.\nPara parar, desmarque a opção: nada mais é enviado e o que saiu deste aparelho é apagado."},
  {id:"foto",q:"Dá para montar o móvel a partir de uma foto do croqui?",k:"foto croqui papel camera imagem tirar foto desenho a mao ler escanear",go:"inserir",
   a:"Sim. Toque em **Móvel** e depois em **Croqui por foto**. Tire ou escolha a foto do desenho no papel, de frente, com boa luz e as medidas legíveis. A IA lê o croqui e mostra o que entendeu. Confira e toque em **Inserir no projeto**. Precisa de internet e de estar com a conta entrada (**⋯ → Entrar na conta**). Cada conta tem até 50 pedidos de IA por dia, somando chat, foto e frases. Sempre confira as medidas antes de cortar."},
  {id:"voz",q:"Dá para ditar o móvel por voz?",k:"voz falar ditar ditado microfone audio escrever descrever frase",go:"inserir",
@@ -3540,7 +3667,7 @@ function closeMore(){$("#moreMenu").hidden=true; $("#bMore").setAttribute("aria-
 $("#bMore").onclick=e=>{e.stopPropagation(); const m=$("#moreMenu"); m.hidden=!m.hidden; $("#bMore").setAttribute("aria-expanded",String(!m.hidden))};
 $("#moreMenu").addEventListener("click",e=>{const a=e.target.closest("[data-m]")?.dataset.m; if(!a) return; closeMore();
   if(a==="look") showLook(); if(a==="export") showExport(); if(a==="proj") $("#bProj").click(); if(a==="org") showOrg();
-  if(a==="acct") showAcct();
+  if(a==="acct") showAcct(); if(a==="aprovar") showAprovar();
 });
 addEventListener("click",e=>{if(!$("#moreMenu").hidden&&!e.target.closest("#moreMenu,#bMore")) closeMore()});
 addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#moreMenu").hidden) closeMore()});

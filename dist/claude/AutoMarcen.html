@@ -2022,7 +2022,8 @@ function askLayer(){
 }
 function showInsert(){
   let cur="balcao";
-  const form=k=>{ if(k.startsWith("kit_")){const K=KITS[k.slice(4)]; return `<p class="note">${esc(K.note)}</p><label class="f"><span class="lb">Nome</span><input class="in" id="iN" value="${esc(K.name)}"></label>`}
+  const form=k=>{
+    if(k.startsWith("kit_")){const K=KITS[k.slice(4)]; return `<p class="note">${esc(K.note)}</p><label class="f"><span class="lb">Nome</span><input class="in" id="iN" value="${esc(K.name)}"></label>`}
     const t=TPL[k]; return `<div class="r3">
       <label class="f"><span class="lb">Largura</span>${uIn("W",toU(t.W)).replace('data-k="W"','id="iW"')}</label>
       <label class="f"><span class="lb">Altura</span>${uIn("H",toU(t.H)).replace('data-k="H"','id="iH"')}</label>
@@ -2033,9 +2034,10 @@ function showInsert(){
     <div class="quick2"><button class="btn" data-photo><svg class="i" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Croqui por foto</button><button class="btn" data-voice><svg class="i" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Falar ou escrever</button></div>
     <p>Ou escolha um modelo. Depois você ajusta vãos, portas, gavetas e acabamentos no painel.</p>
     <div class="tpls">${Object.keys(TPL).map(k=>`<button class="tpl" data-t="${k}" aria-pressed="${k===cur}"><svg viewBox="0 0 56 48">${TPL_ICON[k]}</svg>${TPL[k].name}</button>`).join("")}${Object.keys(KITS).map(k=>`<button class="tpl" data-t="kit_${k}" aria-pressed="false"><svg viewBox="0 0 56 48">${TPL_ICON["kit_"+k]}</svg>${KITS[k].name}</button>`).join("")}</div>
+    <div id="iCom">${typeof mdBotoes==="function"?mdBotoes():""}</div>
     <div id="iForm">${form(cur)}</div>
     <div class="row act"><button class="btn ghost" data-x>Cancelar</button><button class="btn pri" data-ok>Inserir</button></div>`,el=>{
-    $(".tpls",el).onclick=e=>{const b=e.target.closest("[data-t]"); if(!b) return; cur=b.dataset.t; $$("[data-t]",el).forEach(x=>x.setAttribute("aria-pressed",x===b)); $("#iForm",el).innerHTML=form(cur)};
+    el.addEventListener("click",e=>{const b=e.target.closest(".tpl[data-t]"); if(!b) return; cur=b.dataset.t; $$("[data-t]",el).forEach(x=>x.setAttribute("aria-pressed",x===b)); $("#iForm",el).innerHTML=form(cur)});
     $("[data-x]",el).onclick=closeDlg; $("[data-photo]",el).onclick=showPhoto; $("[data-voice]",el).onclick=showVoice;
     $("[data-ok]",el).onclick=()=>{
       if(cur.startsWith("kit_")) return insertKit(cur.slice(4),$("#iN",el).value.trim());
@@ -2097,6 +2099,8 @@ function insertSpec(spec){
 function specSummary(spec){
   return specToMods(spec).map(({tk,over})=>{const m=makeModule(tk,over); return `<li><b>${esc(m.name)}</b>: ${fmtL(m.W)} × ${fmtL(m.H)} × ${fmtL(m.D)} ${P.unit}${-(m.y+m.H)>0?`, a ${fmtL(-(m.y+m.H))} do piso`:""} · ${esc(m.secs.map(secLabel).join(", "))}</li>`}).join("");
 }
+// modelos aprovados da comunidade como referência para a IA (só na versão instalável; modelos.js)
+const specExemplos=()=>typeof mdExemplos==="function"?mdExemplos():"";
 const SPEC_FORMAT=`Responda só com JSON neste formato (medidas em centímetros):
 {"moveis":[{"nome":"Balcão pia","tipo":"balcao","largura":147,"altura":85,"profundidade":60,"altura_piso":0,"vaos":[{"largura":45,"tipo":"gavetas","qtd":4},{"largura":0,"tipo":"porta2","qtd":1}]}],"duvidas":"o que ficou em dúvida, em uma frase, ou vazio"}
 - tipo do móvel: balcao, aereo, gaveteiro, armario, roupeiro, estante, comoda, escrivaninha ou livre.
@@ -2166,7 +2170,7 @@ async function showPhoto(){
       const img=$("#spImg",el); img.src=URL.createObjectURL(f); img.hidden=false;
       const r=$("#spRes",el); r.innerHTML=`<p class="note">Lendo o croqui…</p>`;
       try{
-        const spec=await aiSpec(`A imagem é a foto de um croqui de marcenaria feito à mão (papel quadriculado ou liso), com medidas escritas. Identifique cada móvel desenhado, as medidas externas e a divisão em vãos (portas, gavetas, nichos), da esquerda para a direita. Se houver vista de frente e de lado, use a de lado para a profundidade.\n${SPEC_FORMAT}`,{images:[f],modelTier:"default"});
+        const spec=await aiSpec(`A imagem é a foto de um croqui de marcenaria feito à mão (papel quadriculado ou liso), com medidas escritas. Identifique cada móvel desenhado, as medidas externas e a divisão em vãos (portas, gavetas, nichos), da esquerda para a direita. Se houver vista de frente e de lado, use a de lado para a profundidade.\n${SPEC_FORMAT}${specExemplos()}`,{images:[f],modelTier:"default"});
         if(openDlg&&openDlg.contains(r)) specResult(el,spec);
       }catch(err){
         const c=err&&err.code; r.innerHTML=`<p class="warn">${c==="not_granted"?"A leitura foi recusada. Para usar, permita o uso do Claude quando ele pedir.":c==="image_rejected"?"Essa foto não pôde ser lida. Tente outra, em JPG ou PNG.":c==="rate_limited"?"Muitos pedidos agora. Tente de novo em instantes.":c==="quota"?"Você já usou os pedidos de IA de hoje. Amanhã volta; enquanto isso, use Falar ou escrever.":c==="login"?"Entre na conta para usar a leitura de foto.":c==="off"?"A leitura de foto ainda não está liberada neste app. Enquanto isso, use Falar ou escrever.":"Não consegui ler a foto agora. Tente de novo ou use Falar ou escrever."}</p>`;
@@ -2198,7 +2202,7 @@ function showVoice(){
       const loc=parseSpeech(txt), r=$("#spRes",el), nt=txt.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""), kinds=(nt.match(/\b(balcao|aereo|armario|gaveteiro|roupeiro|estante|comoda|escrivaninha|guarda roupa|torre|painel|rack)\b/g)||[]).length, simple=loc&&loc.moveis[0].largura&&kinds<=1&&!/;/.test(nt);
       if(simple||!H.sample||!online()){ if(loc) specResult(el,loc,!simple&&(!H.sample||!online())?"Entendido no aparelho. Para frases com vários móveis, use com internet.":""); else specResult(el,{moveis:[]}); return }
       r.innerHTML=`<p class="note">Montando…</p>`;
-      try{const spec=await aiSpec(`Um marceneiro descreveu um ou mais móveis falando (pode ter erros de ditado):\n"""${txt.slice(0,1500)}"""\nMonte os móveis.\n${SPEC_FORMAT}`,{modelTier:"quick"}); specResult(el,spec)}
+      try{const spec=await aiSpec(`Um marceneiro descreveu um ou mais móveis falando (pode ter erros de ditado):\n"""${txt.slice(0,1500)}"""\nMonte os móveis.\n${SPEC_FORMAT}${specExemplos()}`,{modelTier:"quick"}); specResult(el,spec)}
       catch(_){ if(loc) specResult(el,loc,"Entendido no aparelho."); else r.innerHTML=`<p class="warn">Não entendi. Diga o tipo e as medidas, por exemplo: “balcão de 120 por 60 com duas portas”.</p>` }
     };
     $("[data-go2]",el).onclick=go;
