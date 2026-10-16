@@ -52,6 +52,7 @@ async function iaPedir(contents,opts){
   opts=opts||{};
   if(!FB.user) throw iaErr("login");
   if(!online()) throw iaErr("network");
+  if(IA.off) throw iaErr("off"); // o Firebase já recusou nesta abertura (App Check ou IA desligada): não gasta pedido do dia à toa
   await iaConta();
   const model=IA_MODELOS[opts.modelTier]||IA_MODELOS.quick, stream=!!opts.onText;
   const body={contents,generationConfig:Object.assign({temperature:.4},opts.json?{responseMimeType:"application/json"}:{})};
@@ -61,6 +62,7 @@ async function iaPedir(contents,opts){
   if(!res.ok){
     let msg=""; try{msg=JSON.stringify(await res.json())}catch(_){}
     console.warn("IA",res.status,msg);
+    if(res.status===401||res.status===403) IA.off=true;
     throw iaErr(res.status===429?"rate_limited":res.status===400&&/image|inline/i.test(msg)?"image_rejected":res.status===401||res.status===403?"off":"error",msg);
   }
   if(!stream){ const j=await res.json(); return iaTexto(j) }

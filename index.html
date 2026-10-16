@@ -1186,6 +1186,7 @@ async function iaPedir(contents,opts){
   opts=opts||{};
   if(!FB.user) throw iaErr("login");
   if(!online()) throw iaErr("network");
+  if(IA.off) throw iaErr("off"); // o Firebase já recusou nesta abertura (App Check ou IA desligada): não gasta pedido do dia à toa
   await iaConta();
   const model=IA_MODELOS[opts.modelTier]||IA_MODELOS.quick, stream=!!opts.onText;
   const body={contents,generationConfig:Object.assign({temperature:.4},opts.json?{responseMimeType:"application/json"}:{})};
@@ -1195,6 +1196,7 @@ async function iaPedir(contents,opts){
   if(!res.ok){
     let msg=""; try{msg=JSON.stringify(await res.json())}catch(_){}
     console.warn("IA",res.status,msg);
+    if(res.status===401||res.status===403) IA.off=true;
     throw iaErr(res.status===429?"rate_limited":res.status===400&&/image|inline/i.test(msg)?"image_rejected":res.status===401||res.status===403?"off":"error",msg);
   }
   if(!stream){ const j=await res.json(); return iaTexto(j) }
@@ -2350,7 +2352,7 @@ async function showPhoto(){
         const spec=await aiSpec(`A imagem é a foto de um croqui de marcenaria feito à mão (papel quadriculado ou liso), com medidas escritas. Identifique cada móvel desenhado, as medidas externas e a divisão em vãos (portas, gavetas, nichos), da esquerda para a direita. Se houver vista de frente e de lado, use a de lado para a profundidade.\n${SPEC_FORMAT}`,{images:[f],modelTier:"default"});
         if(openDlg&&openDlg.contains(r)) specResult(el,spec);
       }catch(err){
-        const c=err&&err.code; r.innerHTML=`<p class="warn">${c==="not_granted"?"A leitura foi recusada. Para usar, permita o uso do Claude quando ele pedir.":c==="image_rejected"?"Essa foto não pôde ser lida. Tente outra, em JPG ou PNG.":c==="rate_limited"?"Muitos pedidos agora. Tente de novo em instantes.":c==="quota"?"Você já usou os pedidos de IA de hoje. Amanhã volta; enquanto isso, use Falar ou escrever.":c==="login"?"Entre na conta para usar a leitura de foto.":"Não consegui ler a foto agora. Tente de novo ou use Falar ou escrever."}</p>`;
+        const c=err&&err.code; r.innerHTML=`<p class="warn">${c==="not_granted"?"A leitura foi recusada. Para usar, permita o uso do Claude quando ele pedir.":c==="image_rejected"?"Essa foto não pôde ser lida. Tente outra, em JPG ou PNG.":c==="rate_limited"?"Muitos pedidos agora. Tente de novo em instantes.":c==="quota"?"Você já usou os pedidos de IA de hoje. Amanhã volta; enquanto isso, use Falar ou escrever.":c==="login"?"Entre na conta para usar a leitura de foto.":c==="off"?"A leitura de foto ainda não está liberada neste app. Enquanto isso, use Falar ou escrever.":"Não consegui ler a foto agora. Tente de novo ou use Falar ou escrever."}</p>`;
       }
     };
   });

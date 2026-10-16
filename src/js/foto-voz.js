@@ -108,7 +108,7 @@ async function showPhoto(){
         const spec=await aiSpec(`A imagem é a foto de um croqui de marcenaria feito à mão (papel quadriculado ou liso), com medidas escritas. Identifique cada móvel desenhado, as medidas externas e a divisão em vãos (portas, gavetas, nichos), da esquerda para a direita. Se houver vista de frente e de lado, use a de lado para a profundidade.\n${SPEC_FORMAT}`,{images:[f],modelTier:"default"});
         if(openDlg&&openDlg.contains(r)) specResult(el,spec);
       }catch(err){
-        const c=err&&err.code; r.innerHTML=`<p class="warn">${c==="not_granted"?"A leitura foi recusada. Para usar, permita o uso do Claude quando ele pedir.":c==="image_rejected"?"Essa foto não pôde ser lida. Tente outra, em JPG ou PNG.":c==="rate_limited"?"Muitos pedidos agora. Tente de novo em instantes.":c==="quota"?"Você já usou os pedidos de IA de hoje. Amanhã volta; enquanto isso, use Falar ou escrever.":c==="login"?"Entre na conta para usar a leitura de foto.":"Não consegui ler a foto agora. Tente de novo ou use Falar ou escrever."}</p>`;
+        const c=err&&err.code; r.innerHTML=`<p class="warn">${c==="not_granted"?"A leitura foi recusada. Para usar, permita o uso do Claude quando ele pedir.":c==="image_rejected"?"Essa foto não pôde ser lida. Tente outra, em JPG ou PNG.":c==="rate_limited"?"Muitos pedidos agora. Tente de novo em instantes.":c==="quota"?"Você já usou os pedidos de IA de hoje. Amanhã volta; enquanto isso, use Falar ou escrever.":c==="login"?"Entre na conta para usar a leitura de foto.":c==="off"?"A leitura de foto ainda não está liberada neste app. Enquanto isso, use Falar ou escrever.":"Não consegui ler a foto agora. Tente de novo ou use Falar ou escrever."}</p>`;
       }
     };
   });
