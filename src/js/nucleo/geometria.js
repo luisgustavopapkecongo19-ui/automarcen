@@ -91,8 +91,10 @@ function modGeom(m){
       if(PS==="nenhum"){hw.push++; return}
       if(PS==="cava"||PS==="perfil"){
         const sw=PS==="cava"?22:20, kind=PS==="cava"?"groove":"metal", dz=PS==="cava"?-8:0, dd=PS==="cava"?8:16;
-        if(dir==="h"){B(x0,y0+h0-sw,zz+dz,w0,sw,dd,kind,o); r2d.push(Object.assign({x:x0,y:y0+h0-sw,w:w0,h:sw,fill:PS==="cava"?"groove":"ink"},fl)); if(PS==="perfil") hw.perfil+=w0/1000}
-        else {const xs=side==="R"?x0+w0-sw:x0; B(xs,y0,zz+dz,sw,h0,dd,kind,o); r2d.push(Object.assign({x:xs,y:y0,w:sw,h:h0,fill:PS==="cava"?"groove":"ink"},fl)); if(PS==="perfil") hw.perfil+=h0/1000}
+        // a cava fica 1 mm para fora da frente nas faces à vista; rente a ela, o 3D pisca em riscos (z-fighting)
+        const e=PS==="cava"?1:0;
+        if(dir==="h"){B(x0-e,y0+h0-sw,zz+dz,w0+2*e,sw+e,dd+e,kind,o); r2d.push(Object.assign({x:x0,y:y0+h0-sw,w:w0,h:sw,fill:PS==="cava"?"groove":"ink"},fl)); if(PS==="perfil") hw.perfil+=w0/1000}
+        else {const xs=side==="R"?x0+w0-sw:x0; B(xs-e,y0-e,zz+dz,sw+2*e,h0+2*e,dd+e,kind,o); r2d.push(Object.assign({x:xs,y:y0,w:sw,h:h0,fill:PS==="cava"?"groove":"ink"},fl)); if(PS==="perfil") hw.perfil+=h0/1000}
         return;
       }
       hw.pull++;
