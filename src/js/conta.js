@@ -35,8 +35,14 @@ function fbUse(u){
   SV.col=null; SV.synced=false; SV.remote={}; SV.parts={}; SV.err=null;
   if(prev&&(!u||prev!==u.uid)){SV.dirty.clear(); SV.dead.clear()}
   if(!u){SV.cloud="off"; updSave(); updAcct(); return}
+  updAcct();
+  // sem o aceite dos termos (termos.js), a conta fica parada até a pessoa aceitar ou sair
+  tmConferir(u).then(ok=>{ if(FB.user!==u) return; if(ok) fbLigar(u); else{SV.cloud="off"; updSave(); tmPedir(u)} });
+}
+function fbLigar(u){
+  if(FB.user!==u||FB.unsub) return;
   FB.unsub=cloudAttach(FB.db.collection("users").doc(u.uid).collection("projetos"));
-  updAcct(); contribAll(); mdCarregar(ehDono());
+  updAcct(); contribAll(); mdCarregar(ehDono()); flEnviar();
 }
 function updAcct(){
   const b=document.querySelector('[data-m="acct"] span'); if(b) b.textContent=FB.user?"Minha conta":"Entrar na conta";
@@ -62,15 +68,15 @@ const FB_ERR={
 const fbMsg=e=>FB_ERR[e&&e.code]||("Não deu certo"+(e&&e.code?" ("+e.code.replace("auth/","")+")":"")+". Tente de novo");
 const G_ICO='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.4 14c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.4H3.1a10 10 0 0 0 0 9.2z"/><path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3.1 7.4L6.4 10c.8-2.3 3-4.1 5.6-4.1z"/></svg>';
 function showAcct(){
+  if(FB.user&&!tmOk()) return tmPedir(FB.user);
   if(FB.user){
     const u=FB.user, who=u.email||u.displayName||"sua conta";
     dlg(`<h2>Minha conta</h2>
       <p>Conectado como <b>${esc(who)}</b>. Os projetos ficam salvos na nuvem e aparecem em todos os aparelhos onde você entrar com esta conta.</p>
       <p class="note">Sem internet, o projeto fica salvo neste aparelho e sobe para a conta quando a conexão voltar. Ao sair da conta, os projetos continuam neste aparelho.</p>
-      ${contribBlock()}
+      ${tmBloco()}
       <div class="row act"><button class="btn ghost" data-x>Fechar</button><button class="btn" data-out>Sair da conta</button></div>`,el=>{
       $("[data-x]",el).onclick=closeDlg;
-      $("#aMod",el).onchange=e=>{contribSet(e.target.checked); if(e.target.checked) toast("Obrigado! Os móveis vão sem nome, cliente ou preço")};
       $("[data-out]",el).onclick=async()=>{try{await FB.auth.signOut(); closeDlg(); toast("Você saiu da conta. Os projetos continuam neste aparelho")}catch(e){toast(fbMsg(e))}};
     },"acct");
     return;
@@ -81,20 +87,22 @@ function showAcct(){
     <p class="note" style="text-align:center">ou com e-mail e senha</p>
     <label class="f"><span class="lb">E-mail</span><input class="in" id="aE" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false"></label>
     <label class="f"><span class="lb">Senha</span><input class="in" id="aP" type="password" autocomplete="current-password" minlength="6"></label>
+    ${tmCaixa("aT")}
     <p class="note" id="aMsg" role="status">${online()?"":"Sem internet agora. Para entrar, conecte-se."}</p>
     <div class="row act"><button class="btn ghost" data-forgot>Esqueci a senha</button><button class="btn" data-new>Criar conta</button><button class="btn pri" data-in>Entrar</button></div>`,el=>{
     const msg=t=>{$("#aMsg",el).textContent=t};
     const E=()=>$("#aE",el).value.trim(), S=()=>$("#aP",el).value;
     const busy=on=>$$("button",el).forEach(b=>b.disabled=on);
-    const run=async(f,okTxt)=>{
-      msg(""); busy(true);
+    const run=async(f,okTxt,termos)=>{
+      if(termos&&!$("#aT",el).checked) return msg("Para entrar, marque que leu e aceita os termos");
+      msg(""); busy(true); if(termos) TM.marcado=true;
       try{await fbLoad(); if(!FB.watching) fbInit(); await f(); if(okTxt){closeDlg(); toast(okTxt)}}
-      catch(e){ if(!(e&&/popup-closed|cancelled-popup/.test(e.code||""))) msg(fbMsg(e)) }
+      catch(e){ TM.marcado=false; if(!(e&&/popup-closed|cancelled-popup/.test(e.code||""))) msg(fbMsg(e)) }
       finally{ if(openDlg&&openDlg.contains(el)) busy(false) }
     };
-    $("[data-g]",el).onclick=()=>run(()=>FB.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider().setCustomParameters({prompt:"select_account"})),"Pronto: seus projetos agora vão para a sua conta");
-    $("[data-in]",el).onclick=()=>run(()=>FB.auth.signInWithEmailAndPassword(E(),S()),"Pronto: seus projetos agora vão para a sua conta");
-    $("[data-new]",el).onclick=()=>run(()=>FB.auth.createUserWithEmailAndPassword(E(),S()),"Conta criada. Seus projetos agora vão para a nuvem");
+    $("[data-g]",el).onclick=()=>run(()=>FB.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider().setCustomParameters({prompt:"select_account"})),"Pronto: seus projetos agora vão para a sua conta",1);
+    $("[data-in]",el).onclick=()=>run(()=>FB.auth.signInWithEmailAndPassword(E(),S()),"Pronto: seus projetos agora vão para a sua conta",1);
+    $("[data-new]",el).onclick=()=>run(()=>FB.auth.createUserWithEmailAndPassword(E(),S()),"Conta criada. Seus projetos agora vão para a nuvem",1);
     $("[data-forgot]",el).onclick=()=>{ if(!E()) return msg("Escreva o seu e-mail acima e toque de novo em Esqueci a senha");
       run(async()=>{await FB.auth.sendPasswordResetEmail(E()); msg("Enviamos um e-mail para criar uma senha nova. Veja também a caixa de spam")}) };
     $("#aP",el).addEventListener("keydown",e=>{if(e.key==="Enter") $("[data-in]",el).click()});

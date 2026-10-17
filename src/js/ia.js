@@ -50,7 +50,7 @@ function iaContents(msgs){
 const iaTexto=j=>((((j||{}).candidates||[])[0]||{}).content||{parts:[]}).parts.map(p=>p.text||"").join("");
 async function iaPedir(contents,opts){
   opts=opts||{};
-  if(!FB.user) throw iaErr("login");
+  if(!FB.user||!tmOk()) throw iaErr("login"); // sem o aceite dos termos (termos.js), a IA não atende
   if(!online()) throw iaErr("network");
   if(Date.now()<IA.off) throw iaErr("off"); // o Firebase recusou há pouco (App Check ou IA desligada): espera 2 min sem gastar pedido do dia
   await iaConta();

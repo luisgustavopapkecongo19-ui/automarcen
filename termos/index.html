@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Termos e privacidade · AutoMarcen</title>
+<meta name="description" content="Termos de uso, política de uso aceitável e política de privacidade do AutoMarcen.">
+<meta name="theme-color" content="#15181d">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="../icons/icon-192.png" type="image/png">
+<link rel="stylesheet" href="../fonts/fonts.css">
+<!--
+  Termos de uso, Política de uso aceitável e Política de privacidade do AutoMarcen.
+  Modelo de boa-fé escrito com base na LGPD (Lei 13.709/2018), no Código de Defesa do Consumidor e nas leis de software
+  e direitos autorais. Revise com um advogado antes de vender.
+  Para preencher os dados da empresa: CONFIG, no fim deste arquivo.
+  Ao mudar o texto de forma importante: suba VERSAO (fim do arquivo), TM_VER em src/js/termos.js e o mínimo em aceitou()
+  de firestore.rules. Quem já tem conta vai aceitar de novo ao abrir o app.
+-->
+<style>
+:root{
+  --bg:#f3f4f6; --surface:#ffffff; --surface-2:#eceef2;
+  --fg:#15181c; --muted:#5e646e; --line:#dfe2e7;
+  --accent:#e2580b; --accent-soft:#fdeee4; --warn:#9a4a07; --warn-bg:#fff4e0;
+  --font:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1013; --surface:#16191e; --surface-2:#1d2026;
+  --fg:#e9ecf0; --muted:#9aa1ac; --line:#262a31;
+  --accent:#ff7b32; --accent-soft:#2d1b10; --warn:#ffb86b; --warn-bg:#2a1c0c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1013; --surface:#16191e; --surface-2:#1d2026;
+  --fg:#e9ecf0; --muted:#9aa1ac; --line:#262a31;
+  --accent:#ff7b32; --accent-soft:#2d1b10; --warn:#ffb86b; --warn-bg:#2a1c0c; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 var(--font);-webkit-text-size-adjust:100%}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:2;background:var(--surface);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;gap:6px;align-items:center;overflow-x:auto;padding-block:10px;scrollbar-width:none}
+header .wrap::-webkit-scrollbar{display:none}
+header b{margin-right:8px;white-space:nowrap}
+header a{white-space:nowrap;color:var(--fg);text-decoration:none;padding:7px 12px;border-radius:999px;background:var(--surface-2);font-size:.92rem}
+header a:hover{background:var(--accent-soft)}
+main{padding:20px 0 40px}
+h1{font-size:1.6rem;line-height:1.25;margin:8px 0 4px}
+h2{font-size:1.3rem;margin:40px 0 4px;padding-top:12px;border-top:2px solid var(--accent)}
+h3{font-size:1.05rem;margin:24px 0 4px}
+p,li{overflow-wrap:anywhere}
+p{margin:8px 0}
+ul,ol{padding-left:22px;margin:8px 0}
+li{margin:4px 0}
+a{color:var(--accent)}
+.muted{color:var(--muted)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:14px 0}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:12px 16px;margin:14px 0}
+.cfg:empty::before{content:"[preencher]";background:var(--warn-bg);color:var(--warn);padding:0 4px;border-radius:4px}
+.tbl{display:grid;gap:10px;margin:12px 0}
+.tbl .box{margin:0}
+.tbl b{display:block}
+.tbl span{display:block;color:var(--muted);font-size:.94rem}
+footer{border-top:1px solid var(--line);background:var(--surface)}
+footer .wrap{padding-block:20px;color:var(--muted);font-size:.9rem}
+@media print{header{position:static}.warn{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" role="navigation" aria-label="Partes">
+    <b>AutoMarcen</b>
+    <a href="#termos">Termos de uso</a>
+    <a href="#uso">Uso aceitável</a>
+    <a href="#privacidade">Privacidade</a>
+    <a href="#contato">Contato</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="warn" id="falta" hidden>Faltam os dados da empresa (nome, CPF ou CNPJ, e-mail e cidade). Preencha em CONFIG, no fim deste arquivo.</p>
+
+  <h1>Termos de uso, uso aceitável e privacidade</h1>
+  <p class="muted">Versão <span data-v></span>, em vigor desde <span data-desde></span>.</p>
+  <div class="box">
+    <p><b>Resumo em poucas linhas.</b> O AutoMarcen é licenciado para você usar, não é vendido. Não pode copiar, piratear, revender nem dividir a conta. Os seus projetos são seus. Ao aceitar estes termos, o app manda uma cópia <b>sem identificação</b> só do formato dos seus móveis, para montar modelos melhores, e um aviso curto, também sem identificação, quando alguma parte do app falha. A IA analisa o projeto aberto quando você pede ajuda a ela. Nunca vão nome do projeto, cliente, preço, telefone, foto nem a sua conta nessas cópias. Não vendemos dados e não usamos os seus dados para anúncios.</p>
+    <p class="muted" style="margin-bottom:0">O resumo ajuda a ler, mas o que vale é o texto completo abaixo.</p>
+  </div>
+
+  <h3 id="quem">Quem oferece o AutoMarcen</h3>
+  <p>O AutoMarcen é oferecido por <span class="cfg" data-cfg="nome"></span>, inscrito no <span class="cfg" data-cfg="documento"></span>, com sede em <span class="cfg" data-cfg="endereco"></span> (chamado aqui de “AutoMarcen”, “nós” ou “titular”). Para falar conosco: <span class="cfg" data-cfg="email"></span>.</p>
+
+  <!-- ===================== PARTE 1 ===================== -->
+  <h2 id="termos">Parte 1. Termos de uso</h2>
+
+  <h3>1. Aceite</h3>
+  <p>Para criar ou usar uma conta do AutoMarcen, você precisa marcar a caixa “Li e aceito” na tela de entrar. O app guarda na sua conta a versão destes termos que você aceitou, a data e a versão do app. Quem usa o AutoMarcen sem conta, só no aparelho, também concorda com estes termos ao usar. Se não concordar, não use o app.</p>
+  <p>Estes termos são formados por três partes que valem juntas: os Termos de uso (esta parte), a <a href="#uso">Política de uso aceitável</a> e a <a href="#privacidade">Política de privacidade</a>.</p>
+
+  <h3>2. O que é o AutoMarcen</h3>
+  <p>O AutoMarcen é um programa de projeto de marcenaria para celular, tablet e computador: desenho com medidas, móveis prontos para ajustar, 3D, lista de peças, plano de corte, furação e orçamento. Ele tem um assistente de inteligência artificial (IA) embutido, que tira dúvidas, monta móveis a partir da foto de um croqui ou de uma frase e ajuda você a desenvolver os seus projetos.</p>
+  <p>O AutoMarcen está em versão de testes (beta). As funções podem mudar, ser melhoradas ou retiradas. Quando uma mudança tirar algo importante de um plano pago, avisamos antes.</p>
+
+  <h3>3. A sua conta</h3>
+  <ul>
+    <li>A conta é para maiores de 18 anos ou para empresas, por meio de quem as representa.</li>
+    <li>Use dados verdadeiros e mantenha a sua senha em segredo.</li>
+    <li>Cada conta é de <b>uma pessoa</b>. Não é permitido dividir a mesma conta entre várias pessoas ou várias empresas (veja a <a href="#uso">Política de uso aceitável</a>).</li>
+    <li>Você responde pelo que for feito com a sua conta. Se desconfiar que alguém entrou nela, troque a senha e nos avise.</li>
+  </ul>
+
+  <h3>4. Licença de uso</h3>
+  <p>O AutoMarcen não é vendido: ele é <b>licenciado</b>. Damos a você uma licença limitada, pessoal, não exclusiva, intransferível e revogável para usar o app nos seus aparelhos, na sua atividade, enquanto a conta estiver ativa e, se houver plano pago, enquanto o pagamento estiver em dia.</p>
+  <p>Todos os direitos sobre o AutoMarcen pertencem ao titular: o código do programa, as telas, os desenhos, o nome e a marca AutoMarcen, o logotipo, os modelos prontos, os conjuntos, o guia, os textos de ajuda e a coleção de modelos da comunidade. Esses direitos são protegidos pela Lei 9.609/1998 (Lei do Software), pela Lei 9.610/1998 (Direitos Autorais) e pela Lei 9.279/1996 (Propriedade Industrial). Nada nestes termos transfere esses direitos a você.</p>
+
+  <h3 id="pirataria">5. É proibido copiar, piratear e revender</h3>
+  <p>Sem autorização por escrito do titular, é proibido:</p>
+  <ol type="a">
+    <li>copiar, reproduzir, baixar para redistribuir ou distribuir o AutoMarcen, no todo ou em parte, fora do uso normal do app;</li>
+    <li><b>revender</b>, alugar, sublicenciar, ceder, emprestar ou oferecer o acesso ao app ou à sua conta a outras pessoas, cobrando ou de graça;</li>
+    <li>criar, publicar ou distribuir versões modificadas, “crackeadas”, desbloqueadas ou com o nome trocado, e distribuir contas, senhas ou formas de liberar funções pagas;</li>
+    <li>descompilar, desmontar ou fazer engenharia reversa do programa, a não ser nos casos em que a lei permite expressamente;</li>
+    <li>tirar ou esconder avisos de autoria, a marca ou o nome AutoMarcen;</li>
+    <li>burlar limites de uso, o limite diário da IA, a cobrança, a verificação de segurança ou qualquer proteção do app;</li>
+    <li>usar o app, as telas, a IA, os modelos prontos ou os modelos da comunidade para criar ou treinar um programa concorrente;</li>
+    <li>extrair em massa os modelos, o guia ou outros conteúdos do app.</li>
+  </ol>
+  <p>Quem descumprir esta cláusula pode ter a conta suspensa ou cancelada na hora, responder por perdas e danos e sofrer as medidas cíveis e criminais previstas em lei. A violação de direitos de autor de programa de computador é crime (art. 12 da Lei 9.609/1998).</p>
+
+  <h3>6. Os seus projetos são seus</h3>
+  <p>Os desenhos, medidas, orçamentos, preços e dados de clientes que você coloca no app pertencem a você. Você nos autoriza a guardar, copiar entre os seus aparelhos e processar esse conteúdo só para o app funcionar: salvar na nuvem, mostrar o 3D, gerar PDF, responder à IA e o que mais você pedir.</p>
+  <p>Se você guardar dados dos seus clientes no app (nome, telefone, endereço), você é quem decide sobre esses dados e deve ter um motivo legítimo para guardá-los, como fazer o orçamento que o cliente pediu. Nós só os guardamos por você.</p>
+
+  <h3 id="ia">7. Melhoria dos modelos, avisos de falha e ajuda da IA</h3>
+  <p>Ao aceitar estes termos, você concorda com o seguinte, que faz parte do uso do AutoMarcen com conta:</p>
+  <ol type="a">
+    <li><b>Cópia sem identificação da estrutura dos móveis.</b> Quando você salva um projeto, o app manda uma cópia só do formato dos móveis: tipo (balcão, aéreo, roupeiro e outros, pela palavra do nome), medidas, posição de um móvel em relação ao outro, vãos, portas, gavetas, interior, puxador e acabamento. <b>Nunca vão</b>: nome do projeto ou do móvel, cliente, preços, telefone, fotos, desenho solto nem qualquer ligação com a sua conta. Cada cópia recebe um código sorteado, guardado só no seu aparelho. Móveis iguais aos modelos prontos do app não são enviados.</li>
+    <li><b>Para que serve.</b> As cópias ficam numa área que só o titular lê. Elas são revisadas uma a uma. As aprovadas viram “Modelos da comunidade”, no botão Móvel, e exemplos de proporções que a IA usa para montar móveis melhores. As recusadas são apagadas.</li>
+    <li><b>Permissão de uso.</b> Formatos de móveis são comuns na marcenaria e não identificam ninguém. Você nos dá, de graça e sem exclusividade, o direito de usar essas estruturas sem identificação nos modelos e na IA do AutoMarcen, inclusive depois que a sua conta for encerrada.</li>
+    <li><b>Avisos de falha.</b> Quando alguma parte do app dá erro, ele manda um aviso curto, de forma anônima e com o mínimo de informação: a mensagem do erro (sem textos entre aspas, e-mails e números longos), em que parte do programa aconteceu, a aba aberta e a versão do app. Não vão o projeto, as medidas, o cliente, a conta nem dados do aparelho. São no máximo 3 avisos cada vez que o app abre, para corrigirmos os erros.</li>
+    <li><b>A IA analisa os projetos para ajudar você.</b> Quando você usa o chat de ajuda, o Croqui por foto ou o Falar ou escrever, a IA recebe o que você mandou (pergunta, foto ou frase) e um resumo do projeto aberto (nome do projeto, nomes e medidas dos móveis, a aba e a ferramenta abertas) para entender o que você está fazendo e sugerir o melhor caminho. Ela ajuda; quem decide é você.</li>
+  </ol>
+  <p>Detalhes de como esses dados são tratados estão na <a href="#privacidade">Política de privacidade</a>.</p>
+
+  <h3>8. Limites da IA</h3>
+  <ul>
+    <li>A IA pode errar. Confira as medidas e os móveis que ela montar antes de cortar ou de mandar ao cliente.</li>
+    <li>Cada conta tem um limite de pedidos de IA por dia, mostrado no app.</li>
+    <li>A IA é fornecida pelo Google (modelos Gemini, pelo Firebase). Sem internet ou sem conta, o chat responde pelo guia guardado no app.</li>
+  </ul>
+
+  <h3>9. Responsabilidade</h3>
+  <p>O AutoMarcen é uma ferramenta de apoio ao seu trabalho. Medidas, lista de peças, plano de corte, furação e orçamento são calculados a partir do que você informou e devem ser conferidos por você antes de cortar, comprar material ou fechar preço com o cliente. Nos limites da lei e do Código de Defesa do Consumidor, não respondemos por perdas de material, atrasos ou preços combinados a partir de informações que não foram conferidas.</p>
+  <p>O app depende de internet e de serviços de terceiros (como o Google) para entrar na conta, salvar na nuvem e usar a IA, e pode ficar fora do ar por um tempo. Guarde cópias dos seus dados com <b>⋯ → Clientes e relatórios → Exportar tudo</b>.</p>
+
+  <h3>10. Planos e pagamento</h3>
+  <p>Se houver planos pagos, o preço, o período e a forma de pagamento serão informados antes da contratação. Na compra pela internet, você pode desistir em até 7 dias e receber de volta o que pagou (art. 49 do Código de Defesa do Consumidor). Você pode cancelar quando quiser, e o plano vale até o fim do período já pago. Mudanças de preço serão avisadas com pelo menos 30 dias de antecedência.</p>
+
+  <h3>11. Suspensão e cancelamento</h3>
+  <p>Você pode parar de usar o app e pedir a exclusão da sua conta a qualquer momento, pelo contato abaixo. Podemos suspender ou cancelar contas que descumprirem estes termos ou a Política de uso aceitável, como explicado lá. Os projetos guardados no seu aparelho continuam nele. Fora os casos graves (pirataria, invasão ou fraude), damos pelo menos 30 dias para você exportar os projetos da nuvem antes de apagá-los.</p>
+
+  <h3>12. Mudanças nestes termos</h3>
+  <p>Quando estes termos mudarem de forma importante, a versão sobe e o app pede um novo aceite. Se não concordar com a nova versão, você pode sair da conta e exportar os seus dados.</p>
+
+  <h3>13. Lei e foro</h3>
+  <p>Valem as leis do Brasil. Quando você usar o app como consumidor, eventuais disputas serão resolvidas no foro do seu domicílio. Nos demais casos, fica eleito o foro da comarca de <span class="cfg" data-cfg="cidade"></span>.</p>
+
+  <!-- ===================== PARTE 2 ===================== -->
+  <h2 id="uso">Parte 2. Política de uso aceitável</h2>
+  <p>Esta política diz o que pode e o que não pode ser feito com o AutoMarcen, para o app continuar seguro e justo para todos.</p>
+
+  <h3>Pode</h3>
+  <ul>
+    <li>Usar o app nos projetos e orçamentos seus ou da sua marcenaria.</li>
+    <li>Mandar aos seus clientes os PDFs, imagens, arquivos e o 3D para o cliente gerados pelo app.</li>
+    <li>Exportar e guardar cópias dos seus próprios dados.</li>
+  </ul>
+
+  <h3>Não pode</h3>
+  <ul>
+    <li><b>Contas compartilhadas:</b> dividir login e senha, usar a mesma conta em várias pessoas ou empresas, usar a conta de outra pessoa, criar contas falsas ou em massa, ou se passar por outra pessoa.</li>
+    <li><b>Automação abusiva:</b> usar robôs, scripts ou programas para acessar o app, o banco de dados ou a IA fora do app; raspar (copiar automaticamente) conteúdo; fazer pedidos em massa; tentar passar do limite diário da IA; sobrecarregar o serviço.</li>
+    <li><b>Ataques e falhas de segurança:</b> tentar ver dados de outras pessoas, mexer nas regras de acesso, nas chaves ou na verificação de segurança, enviar código malicioso. Se achar uma falha, avise pelo contato abaixo e não a use.</li>
+    <li><b>Conteúdo ilegal:</b> usar o chat, a IA, as fotos ou os nomes de projetos para conteúdo ilegal, ofensivo, discriminatório ou que viole direitos de outras pessoas, como copiar projetos de outros profissionais sem autorização ou enviar fotos de pessoas sem permissão.</li>
+    <li><b>Fraude:</b> usar o app para enganar clientes ou terceiros, como orçamentos falsos.</li>
+    <li><b>Estragar os modelos:</b> mandar de propósito móveis falsos ou sem sentido para atrapalhar os modelos da comunidade.</li>
+    <li><b>Pirataria e revenda:</b> tudo o que a <a href="#pirataria">cláusula 5 dos Termos de uso</a> proíbe.</li>
+  </ul>
+
+  <h3>O que acontece se a política for descumprida</h3>
+  <p>Conforme a gravidade, podemos, um passo ou vários de uma vez:</p>
+  <ol>
+    <li>avisar a pessoa;</li>
+    <li>limitar funções, como a IA ou a nuvem;</li>
+    <li>suspender a conta por um tempo;</li>
+    <li>cancelar a conta de vez.</li>
+  </ol>
+  <p>Em casos graves (pirataria, revenda, invasão ou fraude), a conta pode ser cancelada na hora, sem aviso prévio, e o caso pode ser levado às autoridades e à Justiça. Quem discordar de uma medida pode pedir revisão pelo contato abaixo.</p>
+  <p>Para denunciar uso indevido, escreva para <span class="cfg" data-cfg="email"></span>.</p>
+
+  <!-- ===================== PARTE 3 ===================== -->
+  <h2 id="privacidade">Parte 3. Política de privacidade</h2>
+  <p>Esta política explica quais dados pessoais o AutoMarcen trata, para quê e quais são os seus direitos, de acordo com a Lei Geral de Proteção de Dados (Lei 13.709/2018, LGPD).</p>
+
+  <h3>1. Quem cuida dos dados</h3>
+  <p>O controlador dos dados da sua conta é <span class="cfg" data-cfg="nome"></span>. O canal para falar sobre privacidade e com o encarregado de dados é <span class="cfg" data-cfg="email"></span>.</p>
+
+  <h3>2. Quais dados tratamos e para quê</h3>
+  <div class="tbl">
+    <div class="box"><b>Dados da conta</b><span>E-mail, e, se você entrar com o Google, nome e foto da conta Google, além do código da conta. Para você entrar e ter os projetos em todos os aparelhos. Base legal: execução do contrato (art. 7º, V).</span></div>
+    <div class="box"><b>Projetos na nuvem</b><span>O que você salva com a conta entrada, inclusive nomes e dados de clientes que você mesmo digitar. Para guardar e sincronizar os seus projetos. Base legal: execução do contrato (art. 7º, V).</span></div>
+    <div class="box"><b>Registro do aceite</b><span>Versão dos termos aceita, data e versão do app. Para provar o aceite. Base legal: cumprimento de obrigação legal e exercício regular de direitos (art. 7º, II e VI).</span></div>
+    <div class="box"><b>Contador de uso da IA</b><span>Quantos pedidos a conta fez em cada dia. Para aplicar o limite diário e evitar abuso. Base legal: execução do contrato e legítimo interesse (art. 7º, V e IX).</span></div>
+    <div class="box"><b>Pedidos à IA</b><span>A pergunta, a foto ou a frase que você mandou e o resumo do projeto aberto (nome do projeto, nomes e medidas dos móveis, aba e ferramenta). São enviados ao Google para gerar a resposta e não ficam guardados nos registros do AutoMarcen. Base legal: execução do contrato (art. 7º, V).</span></div>
+    <div class="box"><b>Verificação de segurança</b><span>O Google (App Check com reCAPTCHA Enterprise) analisa sinais técnicos do navegador e do aparelho para confirmar que os pedidos à IA vêm do app de verdade. Para prevenir fraude e abuso. Base legal: legítimo interesse (art. 7º, IX).</span></div>
+    <div class="box"><b>Cópias da estrutura dos móveis e avisos de falha</b><span>Descritos na <a href="#ia">cláusula 7 dos Termos de uso</a>. São enviados sem nada que identifique você ou a sua conta, por isso são dados anonimizados e não são dados pessoais para a LGPD (art. 12). Explicamos aqui para você saber exatamente o que sai do aparelho.</span></div>
+    <div class="box"><b>Dados no seu aparelho</b><span>Projetos, preferências, preços digitados e códigos sorteados ficam guardados no navegador do aparelho e só saem dele do jeito descrito nesta política.</span></div>
+  </div>
+
+  <h3>3. O que não fazemos</h3>
+  <ul>
+    <li>Não vendemos nem alugamos dados.</li>
+    <li>Não usamos os seus dados para anúncios e não há rastreadores de publicidade no app.</li>
+    <li>Não lemos os seus projetos guardados na nuvem para outros fins além de fazer o app funcionar, atender um pedido seu ou cumprir a lei.</li>
+  </ul>
+
+  <h3>4. Com quem os dados são compartilhados</h3>
+  <ul>
+    <li><b>Google</b> (Firebase Authentication, Cloud Firestore, Firebase AI Logic com Gemini e App Check com reCAPTCHA Enterprise): guarda a conta e os projetos, processa a IA e a verificação de segurança, seguindo os termos e a política de privacidade do Google. No plano gratuito do serviço de IA, o Google pode usar o conteúdo dos pedidos para melhorar os produtos dele. Por isso, <b>não coloque dados de clientes nas perguntas à IA</b>.</li>
+    <li><b>GitHub</b>: hospeda o site do app e registra dados técnicos de acesso, como o endereço IP.</li>
+    <li><b>Autoridades</b>: quando a lei ou uma ordem judicial exigir.</li>
+  </ul>
+
+  <h3>5. Transferência para fora do Brasil</h3>
+  <p>Os servidores do Google e do GitHub podem ficar fora do Brasil. Essa transferência segue o art. 33 da LGPD, com as garantias contratuais oferecidas por esses fornecedores.</p>
+
+  <h3>6. Por quanto tempo guardamos</h3>
+  <ul>
+    <li>Conta, projetos na nuvem e contador da IA: enquanto a conta existir. Depois do pedido de exclusão, apagamos em até 30 dias.</li>
+    <li>Registro do aceite: pelo tempo necessário para cumprir a lei e defender direitos.</li>
+    <li>Cópias da estrutura dos móveis: as recusadas são apagadas; as aprovadas ficam como modelos do app.</li>
+    <li>Avisos de falha: apagados depois de corrigido o erro, em no máximo 12 meses.</li>
+  </ul>
+
+  <h3>7. Os seus direitos</h3>
+  <p>Pela LGPD (art. 18), você pode pedir: confirmação de que tratamos os seus dados; acesso a eles; correção; anonimização, bloqueio ou eliminação de dados desnecessários; portabilidade; informação sobre com quem compartilhamos; eliminação dos dados tratados com o seu consentimento; e revisão de decisões tomadas só por meios automáticos. A IA do AutoMarcen não toma decisões sobre você; ela só sugere coisas no projeto.</p>
+  <p>Grande parte disso você faz sozinho no app: corrigir e apagar projetos, e exportar tudo em <b>⋯ → Clientes e relatórios → Exportar tudo</b>. Para o resto, escreva para <span class="cfg" data-cfg="email"></span>. Respondemos em até 15 dias. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).</p>
+  <p>As cópias sem identificação e os avisos de falha não têm ligação com a sua conta, por isso não é possível localizá-los a partir dela.</p>
+
+  <h3>8. Segurança</h3>
+  <p>A conexão com o app é criptografada. As regras do banco de dados só deixam cada conta ler os próprios projetos, e a IA só atende pedidos verificados. Nenhum sistema é totalmente seguro: se houver um incidente que possa causar risco ou dano relevante, avisamos você e a ANPD, como manda o art. 48 da LGPD.</p>
+
+  <h3>9. Menores de idade</h3>
+  <p>O AutoMarcen é feito para profissionais e não se destina a menores de 18 anos.</p>
+
+  <h3>10. Mudanças nesta política</h3>
+  <p>Quando esta política mudar de forma importante, avisamos no app e pedimos um novo aceite.</p>
+
+  <h2 id="contato">Contato</h2>
+  <p><span class="cfg" data-cfg="nome"></span> · <span class="cfg" data-cfg="documento"></span><br>
+  <span class="cfg" data-cfg="endereco"></span><br>
+  E-mail: <span class="cfg" data-cfg="email"></span></p>
+</main>
+
+<footer>
+  <div class="wrap">AutoMarcen · Termos, uso aceitável e privacidade · versão <span data-v></span> · <a href="../">Abrir o app</a></div>
+</footer>
+
+<script>
+/* ===== Preencha aqui ===== */
+const CONFIG={
+  nome:"",       // razão social ou nome completo do titular. Ex.: "Fulano de Tal ME" ou "Fulano de Tal"
+  documento:"",  // "CNPJ 00.000.000/0001-00" ou "CPF 000.000.000-00"
+  endereco:"",   // cidade e estado, ou o endereço completo. Ex.: "Curitiba, PR"
+  email:"",      // e-mail de contato e de privacidade
+  cidade:""      // comarca do foro. Ex.: "Curitiba, PR"
+};
+/* Versão dos termos: a mesma de TM_VER em src/js/termos.js */
+const VERSAO=1, DESDE="17 de outubro de 2026";
+/* ========================= */
+(function(){
+  let falta=false;
+  document.querySelectorAll("[data-cfg]").forEach(el=>{
+    const k=el.dataset.cfg, v=String(CONFIG[k]||"").trim();
+    if(!v){falta=true; return}
+    if(k==="email"){const a=document.createElement("a"); a.href="mailto:"+v; a.textContent=v; el.append(a)} else el.textContent=v;
+  });
+  document.getElementById("falta").hidden=!falta;
+  document.querySelectorAll("[data-v]").forEach(el=>el.textContent=VERSAO);
+  document.querySelectorAll("[data-desde]").forEach(el=>el.textContent=DESDE);
+})();
+</script>
+</body>
+</html>

@@ -47,3 +47,4 @@ td.code{font:600 calc(12px*var(--fs,1)) var(--mono)}
 @media (max-width:600px){.mrow{grid-template-columns:1fr 1fr!important}.mrow>:first-child{grid-column:1/-1}}
 .badge{display:inline-block;font-size:calc(11px*var(--fs,1));font-weight:600;color:var(--warn);background:color-mix(in srgb,var(--warn) 14%,transparent);padding:2px 8px;border-radius:999px}
 
+.dlg .chk a,.dlg .grp a{color:var(--accent)}
