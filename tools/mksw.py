@@ -2,7 +2,7 @@
 Chamado pelo tools/build.py. Sozinho: python3 tools/mksw.py <pasta>"""
 import sys, pathlib, hashlib, json
 
-SKIP_DIRS = {".git", "tools", "src", "dist"}
+SKIP_DIRS = {".git", "tools", "src", "dist", "conheca"}  # conheca/ é a página de divulgação: não entra no app guardado
 
 def files(P):
     return sorted(str(f.relative_to(P)) for f in P.rglob("*") if f.is_file()
@@ -25,7 +25,7 @@ self.addEventListener("install",e=>{{e.waitUntil(caches.open(CACHE).then(c=>c.ad
 self.addEventListener("activate",e=>{{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith("croqui3d-")&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))}});
 self.addEventListener("fetch",e=>{{
   const r=e.request; if(r.method!=="GET") return;
-  const u=new URL(r.url); if(u.origin!==location.origin) return;
+  const u=new URL(r.url); if(u.origin!==location.origin||u.pathname.includes("/conheca/")) return;
   if(r.mode==="navigate"){{
     e.respondWith(caches.match("./",{{ignoreSearch:true}}).then(hit=>hit||fetch(r)).catch(()=>caches.match("index.html")));
     return;
