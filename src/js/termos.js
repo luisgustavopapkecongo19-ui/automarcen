@@ -30,7 +30,7 @@ function tmPedir(u){
   if(FB.user!==u) return;
   dlg(`<h2>Termos do AutoMarcen</h2>
     <p>Para continuar usando a sua conta, leia e aceite os termos. Eles dizem o que pode e o que não pode ser feito com o app e como cuidamos dos seus dados.</p>
-    <p class="note">Com o aceite, o app manda uma cópia <b>sem identificação</b> só do formato dos seus móveis, para montar modelos melhores, e um aviso curto e anônimo quando alguma parte falha. A IA analisa o projeto aberto quando você pede ajuda a ela. Não vai nome, cliente, preço, telefone, foto nem a sua conta.</p>
+    <p class="note">Com o aceite, a IA guarda os seus projetos na sua conta para você usar em outro momento, e o app manda uma cópia <b>sem identificação</b> só do formato dos seus móveis, para montar modelos melhores, e um aviso curto e anônimo quando alguma parte falha. A IA analisa o projeto aberto quando você pede ajuda a ela. Não vai nome, cliente, preço, telefone, foto nem a sua conta.</p>
     ${tmCaixa("tmOk")}
     <div class="row act"><button class="btn ghost" data-out>Sair da conta</button><button class="btn pri" data-ok disabled>Aceitar e continuar</button></div>`,el=>{
     const s=el.parentNode; s.addEventListener("pointerdown",e=>{if(e.target===s) e.stopImmediatePropagation()},true); // tocar fora não fecha
@@ -42,6 +42,6 @@ function tmPedir(u){
 // parte de Minha conta
 function tmBloco(){
   return `<div class="grp"><b>Termos e privacidade</b>
-    <span class="note">Você aceitou a versão ${TM_VER} dos termos. Por eles, o app manda uma cópia <b>sem identificação</b> só do formato dos seus móveis (medidas, vãos, portas, gavetas, interior, puxador e cor), para montar modelos prontos melhores para todos, e um aviso curto e anônimo quando alguma parte do app falha. A IA analisa o projeto aberto quando você pede ajuda a ela. <b>Não vai</b> nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta.</span>
+    <span class="note">Você aceitou a versão ${TM_VER} dos termos. Por eles, a IA guarda os seus projetos na sua conta para você usar em outro momento, em qualquer aparelho, e o app manda uma cópia <b>sem identificação</b> só do formato dos seus móveis (medidas, vãos, portas, gavetas, interior, puxador e cor), para montar modelos prontos melhores para todos, e um aviso curto e anônimo quando alguma parte do app falha. A IA analisa o projeto aberto quando você pede ajuda a ela. <b>Não vai</b> nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta.</span>
     <a class="note" href="${TM_URL}" target="_blank" rel="noopener">Ler os termos de uso e a privacidade</a></div>`;
 }
