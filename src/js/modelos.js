@@ -1,5 +1,5 @@
 /* ===== modelos da comunidade: a estrutura dos móveis de todos ajuda a montar modelos prontos melhores. Só na versão instalável =====
-   Faz parte dos termos (termos/index.html, cláusula 7): vale para quem entrou na conta e aceitou os termos (tmOk, termos.js).
+   Faz parte dos termos (termos/index.html, cláusula 8): vale para quem entrou na conta e aceitou os termos (tmOk, termos.js).
    Antes era a opção "Ajudar a melhorar os modelos" em Minha conta; desde a v0.17 não há mais o botão.
    O app manda para a coleção "contribuicoes" do Firestore uma cópia SEM IDENTIFICAÇÃO só da estrutura dos móveis do projeto:
    tipo (pela palavra do nome: balcão, aéreo, roupeiro…), medidas, posição de um móvel em relação ao outro, vãos, portas, gavetas,

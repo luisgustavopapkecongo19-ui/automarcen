@@ -1,4 +1,4 @@
-/* ===== termos de uso, uso aceitável e privacidade: aceite obrigatório para usar a conta. Só na versão instalável =====
+/* ===== termos de uso (com o uso aceitável) e privacidade: aceite obrigatório para usar a conta. Só na versão instalável =====
    O texto fica na página termos/index.html do site. TM_VER é a versão em vigor: ao mudar o texto de forma importante, suba TM_VER,
    a VERSAO de termos/index.html e o mínimo em aceitou() de firestore.rules; quem já tem conta aceita de novo ao abrir o app.
    O aceite fica na conta, em users/{uid}/conta/termos ({v, app, aceito}), e também neste aparelho, para não ler toda vez.
@@ -6,7 +6,7 @@
 const TM_VER=1, TM_URL="termos/";
 const TM={key:"automarcen-termos-", marcado:false, sessao:null};
 const tmOk=()=>!!(FB.user&&(TM.sessao===FB.user.uid||(+lsGet(TM.key+FB.user.uid)||0)>=TM_VER));
-const tmLinks=()=>`os <a href="${TM_URL}#termos" target="_blank" rel="noopener">Termos de uso</a>, a <a href="${TM_URL}#uso" target="_blank" rel="noopener">Política de uso aceitável</a> e a <a href="${TM_URL}#privacidade" target="_blank" rel="noopener">Política de privacidade</a>`;
+const tmLinks=()=>`os <a href="${TM_URL}#termos" target="_blank" rel="noopener">Termos de uso</a> e a <a href="${TM_URL}#privacidade" target="_blank" rel="noopener">Política de privacidade</a>`;
 const tmCaixa=id=>`<label class="chk"><input type="checkbox" id="${id}"> <span>Li e aceito ${tmLinks()} do AutoMarcen</span></label>`;
 function tmGravar(u){
   TM.sessao=u.uid; // vale já nesta abertura; no aparelho, só depois que a conta confirmar
@@ -43,5 +43,5 @@ function tmPedir(u){
 function tmBloco(){
   return `<div class="grp"><b>Termos e privacidade</b>
     <span class="note">Você aceitou a versão ${TM_VER} dos termos. Por eles, o app manda uma cópia <b>sem identificação</b> só do formato dos seus móveis (medidas, vãos, portas, gavetas, interior, puxador e cor), para montar modelos prontos melhores para todos, e um aviso curto e anônimo quando alguma parte do app falha. A IA analisa o projeto aberto quando você pede ajuda a ela. <b>Não vai</b> nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta.</span>
-    <a class="note" href="${TM_URL}" target="_blank" rel="noopener">Ler os termos, o uso aceitável e a privacidade</a></div>`;
+    <a class="note" href="${TM_URL}" target="_blank" rel="noopener">Ler os termos de uso e a privacidade</a></div>`;
 }

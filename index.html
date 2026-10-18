@@ -1143,7 +1143,7 @@ function showAcct(){
     $("#aP",el).addEventListener("keydown",e=>{if(e.key==="Enter") $("[data-in]",el).click()});
   },"acct");
 }
-/* ===== termos de uso, uso aceitável e privacidade: aceite obrigatório para usar a conta. Só na versão instalável =====
+/* ===== termos de uso (com o uso aceitável) e privacidade: aceite obrigatório para usar a conta. Só na versão instalável =====
    O texto fica na página termos/index.html do site. TM_VER é a versão em vigor: ao mudar o texto de forma importante, suba TM_VER,
    a VERSAO de termos/index.html e o mínimo em aceitou() de firestore.rules; quem já tem conta aceita de novo ao abrir o app.
    O aceite fica na conta, em users/{uid}/conta/termos ({v, app, aceito}), e também neste aparelho, para não ler toda vez.
@@ -1151,7 +1151,7 @@ function showAcct(){
 const TM_VER=1, TM_URL="termos/";
 const TM={key:"automarcen-termos-", marcado:false, sessao:null};
 const tmOk=()=>!!(FB.user&&(TM.sessao===FB.user.uid||(+lsGet(TM.key+FB.user.uid)||0)>=TM_VER));
-const tmLinks=()=>`os <a href="${TM_URL}#termos" target="_blank" rel="noopener">Termos de uso</a>, a <a href="${TM_URL}#uso" target="_blank" rel="noopener">Política de uso aceitável</a> e a <a href="${TM_URL}#privacidade" target="_blank" rel="noopener">Política de privacidade</a>`;
+const tmLinks=()=>`os <a href="${TM_URL}#termos" target="_blank" rel="noopener">Termos de uso</a> e a <a href="${TM_URL}#privacidade" target="_blank" rel="noopener">Política de privacidade</a>`;
 const tmCaixa=id=>`<label class="chk"><input type="checkbox" id="${id}"> <span>Li e aceito ${tmLinks()} do AutoMarcen</span></label>`;
 function tmGravar(u){
   TM.sessao=u.uid; // vale já nesta abertura; no aparelho, só depois que a conta confirmar
@@ -1188,9 +1188,9 @@ function tmPedir(u){
 function tmBloco(){
   return `<div class="grp"><b>Termos e privacidade</b>
     <span class="note">Você aceitou a versão ${TM_VER} dos termos. Por eles, o app manda uma cópia <b>sem identificação</b> só do formato dos seus móveis (medidas, vãos, portas, gavetas, interior, puxador e cor), para montar modelos prontos melhores para todos, e um aviso curto e anônimo quando alguma parte do app falha. A IA analisa o projeto aberto quando você pede ajuda a ela. <b>Não vai</b> nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta.</span>
-    <a class="note" href="${TM_URL}" target="_blank" rel="noopener">Ler os termos, o uso aceitável e a privacidade</a></div>`;
+    <a class="note" href="${TM_URL}" target="_blank" rel="noopener">Ler os termos de uso e a privacidade</a></div>`;
 }
-/* ===== avisos de falha: quando uma parte do app dá erro, manda um aviso curto e sem identificação (termos, cláusula 7). Só na versão instalável =====
+/* ===== avisos de falha: quando uma parte do app dá erro, manda um aviso curto e sem identificação (termos, cláusula 8). Só na versão instalável =====
    Só com a conta entrada e os termos aceitos (tmOk). Vai: a mensagem do erro sem textos entre aspas, e-mails e números longos,
    o arquivo e a linha, a aba aberta e a versão do app. Não vai: projeto, medidas, cliente, conta nem aparelho.
    No máximo 3 por abertura do app, sem repetir. As regras (firestore.rules: falhas) só deixam criar; só o dono lê e apaga, no console do Firebase. */
@@ -1318,7 +1318,7 @@ IA.json=async(prompt,opts)=>{
 IA.limits=async()=>({images:{mediaTypes:["image/*"]}});
 IA.gemini=true; IA.off=0;
 /* ===== modelos da comunidade: a estrutura dos móveis de todos ajuda a montar modelos prontos melhores. Só na versão instalável =====
-   Faz parte dos termos (termos/index.html, cláusula 7): vale para quem entrou na conta e aceitou os termos (tmOk, termos.js).
+   Faz parte dos termos (termos/index.html, cláusula 8): vale para quem entrou na conta e aceitou os termos (tmOk, termos.js).
    Antes era a opção "Ajudar a melhorar os modelos" em Minha conta; desde a v0.17 não há mais o botão.
    O app manda para a coleção "contribuicoes" do Firestore uma cópia SEM IDENTIFICAÇÃO só da estrutura dos móveis do projeto:
    tipo (pela palavra do nome: balcão, aéreo, roupeiro…), medidas, posição de um móvel em relação ao outro, vãos, portas, gavetas,
@@ -3467,7 +3467,7 @@ function setView(v){
 const APP_VER="v0.17 beta";
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
-  {v:"v0.17 beta",items:["Termos do AutoMarcen: em ⋯ → Termos e privacidade estão os Termos de uso, a Política de uso aceitável e a Política de privacidade.","Para entrar na conta, marque que leu e aceita os termos. Quem já tem conta aceita uma vez ao abrir o app.","A opção Ajudar a melhorar os modelos saiu de Minha conta e agora faz parte dos termos: o app manda só o formato dos móveis, sem nome, cliente, preço, telefone, foto nem a sua conta.","Quando alguma parte do app falha, ele manda um aviso curto e anônimo para o erro ser corrigido mais rápido."]},
+  {v:"v0.17 beta",items:["Termos do AutoMarcen: em ⋯ → Termos e privacidade estão os Termos de uso, com as regras de uso aceitável, e a Política de privacidade.","Para entrar na conta, marque que leu e aceita os termos. Quem já tem conta aceita uma vez ao abrir o app.","A opção Ajudar a melhorar os modelos saiu de Minha conta e agora faz parte dos termos: o app manda só o formato dos móveis, sem nome, cliente, preço, telefone, foto nem a sua conta.","Quando alguma parte do app falha, ele manda um aviso curto e anônimo para o erro ser corrigido mais rápido."]},
   {v:"v0.16 beta",items:["Modelos da comunidade: em Móvel, abaixo dos modelos prontos, aparecem os móveis e conjuntos que marceneiros que usam o AutoMarcen montaram e que foram revisados um a um. Toque e insira, depois ajuste as medidas.","A IA do Croqui por foto e do Falar ou escrever usa esses modelos aprovados como referência de proporções quando a foto ou a frase não diz tudo. As medidas que você der continuam valendo."]},
   {v:"v0.15 beta",items:["Modelos da comunidade, primeira parte: em ⋯ → Minha conta há a opção Ajudar a melhorar os modelos. Ela vem desligada.","Ligada, o app manda uma cópia sem identificação só do formato dos seus móveis (medidas, vãos, portas, gavetas, puxador e cor). Não vai nome, cliente, preço, telefone, foto nem a sua conta.","Os melhores formatos, revisados um a um, vão virar modelos prontos no botão Móvel."]},
   {v:"v0.14.1 beta",items:["Puxador cava no 3D: agora aparece como uma faixa escura e limpa no alto da gaveta ou na borda da porta, sem os riscos que piscavam na frente."]},
@@ -3561,7 +3561,7 @@ const KB=[
  {id:"cliente",q:"Como mando o orçamento para o cliente aprovar?",k:"cliente mandar enviar pdf whatsapp resumo proposta compartilhar aprovar aprovacao link 3d situacao aprovado recusado",go:"orcamento",
   a:"Na aba **Orçamento**:\n1. Em **Seu WhatsApp**, coloque o seu número. Ele fica guardado.\n2. **Gerar PDF** cria a proposta com 3D, desenho e valores, e com os botões **Aprovar pelo WhatsApp** e **Pedir ajuste**.\n3. **3D para o cliente** salva um arquivo que o cliente abre no celular para girar o móvel, abrir as portas e tocar em **Aprovar**.\n4. **Copiar resumo** copia um texto curto para colar no WhatsApp.\nQuando o cliente responder, marque a **Situação do orçamento** (Enviado, Aprovado ou Recusado). Ela aparece na lista de Projetos."},
  {id:"termos",q:"Quais são os termos e o que o app envia?",k:"termos uso politica privacidade lgpd dados anonimo enviar envia aceitar aceite pirataria copiar revender conta compartilhada modelos comunidade melhorar falha erro aviso",go:"conta",
-  a:"Os **Termos de uso**, a **Política de uso aceitável** e a **Política de privacidade** ficam em **⋯ → Termos e privacidade**. Para entrar na conta, você marca que leu e aceita.\nPelos termos, o app manda uma cópia **sem identificação** só do formato dos seus móveis (medidas, vãos, portas, gavetas, interior, puxador e cor) para montar os **Modelos da comunidade**, e um aviso curto e anônimo quando alguma parte do app falha. A IA analisa o projeto aberto quando você pede ajuda a ela.\n**Não vai** nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta. A conta é de uma pessoa só, e não é permitido copiar, piratear nem revender o app."},
+  a:"Os **Termos de uso**, que incluem as regras de uso aceitável, e a **Política de privacidade** ficam em **⋯ → Termos e privacidade**. Para entrar na conta, você marca que leu e aceita.\nPelos termos, o app manda uma cópia **sem identificação** só do formato dos seus móveis (medidas, vãos, portas, gavetas, interior, puxador e cor) para montar os **Modelos da comunidade**, e um aviso curto e anônimo quando alguma parte do app falha. A IA analisa o projeto aberto quando você pede ajuda a ela.\n**Não vai** nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta. A conta é de uma pessoa só, e não é permitido copiar, piratear nem revender o app."},
  {id:"foto",q:"Dá para montar o móvel a partir de uma foto do croqui?",k:"foto croqui papel camera imagem tirar foto desenho a mao ler escanear",go:"inserir",
   a:"Sim. Toque em **Móvel** e depois em **Croqui por foto**. Tire ou escolha a foto do desenho no papel, de frente, com boa luz e as medidas legíveis. A IA lê o croqui e mostra o que entendeu. Confira e toque em **Inserir no projeto**. Precisa de internet e de estar com a conta entrada (**⋯ → Entrar na conta**). Cada conta tem até 50 pedidos de IA por dia, somando chat, foto e frases. Sempre confira as medidas antes de cortar."},
  {id:"voz",q:"Dá para ditar o móvel por voz?",k:"voz falar ditar ditado microfone audio escrever descrever frase",go:"inserir",

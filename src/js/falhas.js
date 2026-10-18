@@ -1,4 +1,4 @@
-/* ===== avisos de falha: quando uma parte do app dá erro, manda um aviso curto e sem identificação (termos, cláusula 7). Só na versão instalável =====
+/* ===== avisos de falha: quando uma parte do app dá erro, manda um aviso curto e sem identificação (termos, cláusula 8). Só na versão instalável =====
    Só com a conta entrada e os termos aceitos (tmOk). Vai: a mensagem do erro sem textos entre aspas, e-mails e números longos,
    o arquivo e a linha, a aba aberta e a versão do app. Não vai: projeto, medidas, cliente, conta nem aparelho.
    No máximo 3 por abertura do app, sem repetir. As regras (firestore.rules: falhas) só deixam criar; só o dono lê e apaga, no console do Firebase. */
