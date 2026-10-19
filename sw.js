@@ -5,7 +5,7 @@ self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.add
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith("croqui3d-")&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{
   const r=e.request; if(r.method!=="GET") return;
-  const u=new URL(r.url); if(u.origin!==location.origin) return;
+  const u=new URL(r.url); if(u.origin!==location.origin||u.pathname.includes("/conheca/")||u.pathname.includes("/termos/")) return;
   if(r.mode==="navigate"){
     e.respondWith(caches.match("./",{ignoreSearch:true}).then(hit=>hit||fetch(r)).catch(()=>caches.match("index.html")));
     return;

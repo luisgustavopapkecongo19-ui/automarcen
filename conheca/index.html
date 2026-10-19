@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AutoMarcen</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="App de projeto para marceneiro: desenho com medidas no celular, 3D, lista e plano de corte e orçamento em PDF para o cliente aprovar pelo WhatsApp.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AutoMarcen: do croqui no papel ao orçamento aprovado">
+<meta property="og:description" content="Desenhe o móvel no celular, veja em 3D, tire o plano de corte e mande o orçamento em PDF para o cliente.">
+<meta property="og:image" content="https://luisgustavopapkecongo19-ui.github.io/automarcen/conheca/img/tablet.jpg">
+<meta property="og:url" content="https://luisgustavopapkecongo19-ui.github.io/automarcen/conheca/">
+<meta name="theme-color" content="#e2580b">
+<link rel="icon" href="img/icone.png">
+<link rel="stylesheet" href="../fonts/fonts.css">
+<style>
+/* Layout: página de papel quadriculado. Topo com o croqui à mão virando móvel no celular; depois os 4 passos na ordem das abas do app, recursos, preço e dúvidas */
+:root{
+  --bg:#f3f4f6; --surface:#ffffff; --surface-2:#eceef2;
+  --fg:#15181c; --muted:#5e646e; --line:#dfe2e7; --grid:#e6e9ee;
+  --accent:#e2580b; --accent-fg:#ffffff; --accent-soft:#fdeee4;
+  --pencil:#3b4250; --dim:#d4372c;
+  --font:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --shadow:0 1px 2px rgba(16,20,26,.06),0 10px 30px rgba(16,20,26,.10);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1013; --surface:#16191e; --surface-2:#1d2026;
+  --fg:#e9ecf0; --muted:#9aa1ac; --line:#262a31; --grid:#181b20;
+  --accent:#ff7b32; --accent-fg:#1c0d03; --accent-soft:#2d1b10;
+  --pencil:#c3c9d3; --dim:#ff6b5e;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.4); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1013; --surface:#16191e; --surface-2:#1d2026;
+  --fg:#e9ecf0; --muted:#9aa1ac; --line:#262a31; --grid:#181b20;
+  --accent:#ff7b32; --accent-fg:#1c0d03; --accent-soft:#2d1b10;
+  --pencil:#c3c9d3; --dim:#ff6b5e;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.4); color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.55 var(--font);-webkit-font-smoothing:antialiased;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+img{max-width:100%;display:block}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.1;letter-spacing:-.02em}
+h1{font-size:clamp(2.3rem,6vw,4.1rem);font-weight:700}
+h2{font-size:clamp(1.7rem,3.6vw,2.5rem);font-weight:700}
+h3{font-size:1.15rem;font-weight:600;letter-spacing:-.01em}
+p{margin:0}
+.lead{font-size:clamp(1.05rem,1.8vw,1.22rem);color:var(--muted);max-width:34em}
+.tag{font:500 .78rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+
+/* topo fixo */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;align-items:center;gap:12px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1rem;text-decoration:none;margin-right:auto}
+.brand img{width:34px;height:34px;border-radius:9px}
+.bar nav{display:flex;gap:20px;font-size:.95rem}
+.bar nav a{text-decoration:none;color:var(--muted)}
+.bar nav a:hover{color:var(--fg)}
+@media (max-width:760px){.bar nav{display:none}}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:0 22px;border-radius:12px;font:600 1rem/1 var(--font);text-decoration:none;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.sm{min-height:40px;padding:0 16px;font-size:.92rem}
+.btn svg{width:20px;height:20px;flex:none}
+.ctas{display:flex;flex-wrap:wrap;gap:12px}
+
+/* hero */
+.hero{padding-block:clamp(40px,7vw,88px) clamp(48px,7vw,96px)}
+.hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(32px,5vw,64px);align-items:center}
+.hero-txt{display:grid;gap:22px;min-width:0}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.facts{display:flex;flex-wrap:wrap;gap:8px 18px;font:500 .85rem/1.3 var(--mono);color:var(--muted)}
+.facts span::before{content:"✓ ";color:var(--accent)}
+.stage{position:relative;min-height:440px;min-width:0}
+.paper{position:absolute;left:0;top:40px;width:min(64%,360px);background:var(--surface);border-radius:6px;box-shadow:var(--shadow);transform:rotate(-4deg);padding:14px;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:14px 14px}
+.paper svg{width:100%;height:auto;overflow:visible}
+.paper .lbl{font:500 .72rem/1 var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.sk{fill:none;stroke:var(--pencil);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.sk.thin{stroke-width:1.4}
+.sk.dash{stroke-dasharray:5 5;stroke-width:1.2}
+.dm{fill:none;stroke:var(--dim);stroke-width:1.3}
+.dt{fill:var(--dim);font:600 15px var(--mono)}
+.phone{position:relative;border-radius:30px;border:9px solid #15181c;background:#15181c;overflow:hidden;box-shadow:var(--shadow);aspect-ratio:560/1115}
+.phone img{width:100%;height:100%;object-fit:cover;object-position:top}
+.stage .phone{position:absolute;right:0;top:0;width:min(42%,230px)}
+.arrow{position:absolute;left:34%;bottom:4%;width:90px;color:var(--accent);transform:rotate(-12deg)}
+@media (max-width:860px){
+  .hero .wrap{grid-template-columns:1fr}
+  .stage{min-height:0;height:min(118vw,520px)}
+}
+
+/* seções */
+section{padding-block:clamp(56px,8vw,104px)}
+.head{display:grid;gap:12px;margin-bottom:clamp(28px,4vw,44px);max-width:44em}
+.band{background:var(--surface);border-block:1px solid var(--line)}
+
+/* passos */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(16px,2.4vw,28px);list-style:none;margin:0;padding:0}
+.steps li{display:grid;gap:14px;align-content:start;min-width:0}
+.steps .n{font:600 .85rem/1 var(--mono);color:var(--accent)}
+.steps p{color:var(--muted);font-size:.97rem}
+.steps .phone{border-width:7px;border-radius:24px}
+@media (max-width:900px){
+  .steps{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:min(70vw,250px);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:12px;margin-right:calc(-1 * max(16px,env(safe-area-inset-right,0px)))}
+  .steps li{scroll-snap-align:start}
+}
+
+/* recursos */
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.feat{background:var(--surface);padding:26px 24px;display:grid;gap:10px;align-content:start;min-width:0}
+.feat svg{width:28px;height:28px;fill:none;stroke:var(--accent);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.feat p{color:var(--muted);font-size:.96rem}
+@media (max-width:900px){.feats{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.feats{grid-template-columns:1fr}}
+
+.shot{margin-top:clamp(32px,5vw,56px);border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow)}
+.cap{margin-top:12px;font:.85rem/1.4 var(--mono);color:var(--muted)}
+
+/* preço */
+.price{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,4vw,48px);align-items:start}
+.pcard{background:var(--surface);border:2px solid var(--accent);border-radius:18px;padding:clamp(22px,3vw,34px);display:grid;gap:16px;box-shadow:var(--shadow);min-width:0}
+.pval{font-size:clamp(2.2rem,5vw,3.1rem);font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.pval small{font-size:1rem;font-weight:500;color:var(--muted);letter-spacing:0}
+.trial{display:inline-block;background:var(--accent-soft);color:var(--accent);font-weight:600;padding:6px 12px;border-radius:999px;font-size:.92rem;justify-self:start}
+.incl{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.incl li{padding-left:28px;position:relative}
+.incl li::before{content:"";position:absolute;left:2px;top:.45em;width:14px;height:8px;border-left:2.5px solid var(--accent);border-bottom:2.5px solid var(--accent);transform:rotate(-45deg)}
+.warn{font-size:.9rem;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:10px 12px}
+@media (max-width:800px){.price{grid-template-columns:1fr}}
+
+/* dúvidas */
+.faq{display:grid;gap:10px;max-width:780px}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 20px}
+summary{cursor:pointer;font-weight:600;padding:16px 0;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font:500 1.3rem/1 var(--mono);color:var(--accent)}
+details[open] summary::after{content:"–"}
+details p{color:var(--muted);padding-bottom:18px}
+
+.final{text-align:left;display:grid;gap:20px;justify-items:start}
+footer{border-top:1px solid var(--line);background:var(--surface)}
+footer .wrap{padding-block:26px;display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#topo"><img src="img/icone.png" alt="" width="34" height="34">AutoMarcen</a>
+    <nav aria-label="Seções"><a href="#como">Como funciona</a><a href="#recursos">Recursos</a><a href="#preco">Preço</a><a href="#duvidas">Dúvidas</a></nav>
+    <a class="btn pri sm" data-app href="https://luisgustavopapkecongo19-ui.github.io/automarcen/">Abrir o app</a>
+  </div>
+</header>
+
+<main id="topo">
+  <div class="hero">
+    <div class="wrap">
+      <div class="hero-txt">
+        <span class="tag">App de projeto para marceneiro</span>
+        <h1>Do croqui no papel ao <em>orçamento aprovado</em>.</h1>
+        <p class="lead">Desenhe o móvel com as medidas no celular, veja em 3D, tire a lista e o plano de corte e mande o orçamento em PDF para o cliente aprovar pelo WhatsApp.</p>
+        <div class="ctas">
+          <a class="btn pri" data-app href="https://luisgustavopapkecongo19-ui.github.io/automarcen/">Abrir o AutoMarcen</a>
+          <a class="btn" data-whats href="#contato"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7z"/><path d="M9 9.5c.3 2.2 2.3 4.2 4.5 4.6l1-1.1 1.8.8-.4 1.6c-3.6.3-7.4-3.5-7.1-7.1l1.6-.4.8 1.8z"/></svg>Falar no WhatsApp</a>
+        </div>
+        <div class="facts"><span>Celular, tablet e computador</span><span>Funciona sem internet</span><span>Sem instalar nada da loja</span></div>
+      </div>
+
+      <div class="stage" aria-hidden="true">
+        <div class="paper">
+          <div class="lbl">Balcão pia · MDF 18</div>
+          <svg viewBox="0 0 300 220">
+            <path class="dm" d="M40 30H262M40 24v12M262 24v12"/><text class="dt" x="134" y="22">147</text>
+            <path class="dm" d="M20 52V190M14 52h12M14 190h12"/><text class="dt" x="0" y="126" transform="rotate(-90 12 122)">85</text>
+            <path class="sk" d="M41 52.5c60-.8 150 .6 221-.4M262 52c.6 40-.4 98 .3 138M262 190c-70 .7-150-.4-221 .3M41 190.5c-.6-46 .5-92-.4-138"/>
+            <path class="sk thin" d="M40 172c70 .5 150-.3 222 .2"/>
+            <path class="sk thin" d="M190 53c.4 40-.3 80 .2 119M190 85.5c24-.3 48 .4 72-.2M190 117c24 .3 48-.3 72 .2M190 146c24-.2 48 .3 72-.1"/>
+            <path class="sk thin" d="M115 53c-.3 40 .4 80-.1 119"/>
+            <path class="sk dash" d="M41 54l74 58-74 58M189 54l-74 58 74 58"/>
+            <path class="sk" d="M108 104v16M122 104v16M219 70h14M219 101h14M219 131h14M219 159h14"/>
+            <text class="dt" x="210" y="210" style="font-size:12px">gav. 45</text>
+          </svg>
+        </div>
+        <svg class="arrow" viewBox="0 0 80 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 30c20-18 40-22 64-14M58 8l12 9-14 6"/></svg>
+        <div class="phone"><img src="img/3d.jpg" alt="" width="560" height="1115"></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="como" class="band">
+    <div class="wrap">
+      <div class="head">
+        <span class="tag">Como funciona</span>
+        <h2>Quatro abas, na ordem em que você trabalha.</h2>
+        <p class="lead">O mesmo projeto passa do desenho para o 3D, para o corte e para o orçamento. Mudou uma medida, tudo se refaz sozinho.</p>
+      </div>
+      <ol class="steps">
+        <li><span class="n">1 · Desenho</span><div class="phone"><img src="img/desenho.jpg" alt="Tela de desenho com uma cozinha e as cotas em centímetros" loading="lazy" width="560" height="1115"></div><h3>Desenhe com medida</h3><p>Linha, retângulo, cota e móveis prontos: balcão, aéreo, gaveteiro, roupeiro, estante, cômoda e cozinha completa. Você digita a medida e escolhe porta, gaveta, nicho ou porta de correr em cada vão.</p></li>
+        <li><span class="n">2 · 3D</span><div class="phone"><img src="img/3d.jpg" alt="Cozinha em 3D com frentes amadeiradas" loading="lazy" width="560" height="1115"></div><h3>Mostre em 3D</h3><p>Gire com o dedo, troque a cor do MDF entre 18 acabamentos e abra portas e gavetas para o cliente ver por dentro.</p></li>
+        <li><span class="n">3 · Corte</span><div class="phone"><img src="img/corte.jpg" alt="Plano de corte com as peças distribuídas na chapa" loading="lazy" width="560" height="1115"></div><h3>Corte sem desperdício</h3><p>Lista de peças em milímetros, fita de borda, ferragens e o plano de corte de cada chapa, respeitando o veio e mostrando as sobras que dá para aproveitar.</p></li>
+        <li><span class="n">4 · Orçamento</span><div class="phone"><img src="img/orcamento.jpg" alt="Resumo do orçamento com chapas, fita e ferragens" loading="lazy" width="560" height="1115"></div><h3>Feche o orçamento</h3><p>Você põe os preços da sua região, a mão de obra e a margem. Sai o PDF para o cliente, com botões para aprovar ou pedir ajuste pelo WhatsApp.</p></li>
+      </ol>
+      <p class="cap">Valores das telas são só de exemplo. No app, cada um usa os preços dos seus fornecedores.</p>
+    </div>
+  </section>
+
+  <section id="recursos">
+    <div class="wrap">
+      <div class="head">
+        <span class="tag">Recursos</span>
+        <h2>Feito para a rotina da marcenaria.</h2>
+      </div>
+      <div class="feats">
+        <div class="feat"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><h3>Croqui por foto</h3><p>Tire foto do desenho no papel e a inteligência artificial monta o móvel com as medidas. Também dá para descrever falando ou escrevendo.</p></div>
+        <div class="feat"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><h3>Clientes e relatórios</h3><p>Veja o que foi orçado e o que foi vendido em cada mês, os projetos de cada cliente e o total de material.</p></div>
+        <div class="feat"><svg viewBox="0 0 24 24"><path d="M7 18a5 5 0 1 1 .9-9.9A6 6 0 0 1 19 10a4 4 0 0 1-1 7.9H7z"/><path d="M9 13l2 2 4-4"/></svg><h3>Salvo na sua conta</h3><p>Entre com Google ou e-mail e os projetos aparecem no celular, no tablet e no computador.</p></div>
+        <div class="feat"><svg viewBox="0 0 24 24"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0"/><path d="M3 3l18 18"/></svg><h3>Funciona sem internet</h3><p>Na obra ou na casa do cliente sem sinal, o app abre e salva no aparelho. Quando a internet volta, sobe sozinho.</p></div>
+        <div class="feat"><svg viewBox="0 0 24 24"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7z"/></svg><h3>Aprovação pelo WhatsApp</h3><p>Mande o PDF ou o 3D para o cliente. Ele toca em Aprovar e a conversa já abre com você, com a mensagem pronta.</p></div>
+        <div class="feat"><svg viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><h3>Leve para a fábrica</h3><p>Exporte o desenho em DXF, SVG ou imagem e a lista de peças em CSV para a planilha ou a máquina de corte.</p></div>
+      </div>
+      <div class="shot"><img src="img/tablet.jpg" alt="AutoMarcen no tablet: desenho da cozinha com o painel de propriedades" loading="lazy" width="1280" height="801"></div>
+      <p class="cap">No tablet e no computador, o desenho ganha o painel de propriedades ao lado.</p>
+    </div>
+  </section>
+
+  <section id="preco" class="band">
+    <div class="wrap price">
+      <div class="head">
+        <span class="tag">Preço</span>
+        <h2>Comece a usar hoje.</h2>
+        <p class="lead">Abra no navegador do celular e toque em Instalar. O ícone vai para a tela inicial como um app comum.</p>
+      </div>
+      <div class="pcard">
+        <h3 id="pNome">AutoMarcen completo</h3>
+        <div class="pval" id="pValor">Consulte</div>
+        <span class="trial" id="pTeste" hidden></span>
+        <ul class="incl">
+          <li>Desenho, 3D, plano de corte e orçamento em PDF</li>
+          <li>Croqui por foto e por voz com inteligência artificial</li>
+          <li>Projetos salvos na conta, em todos os aparelhos</li>
+          <li>Clientes e relatórios de vendas</li>
+          <li>Atualizações incluídas</li>
+        </ul>
+        <a class="btn pri" data-whats href="#contato">Quero começar</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="duvidas">
+    <div class="wrap">
+      <div class="head"><span class="tag">Dúvidas</span><h2>Perguntas frequentes</h2></div>
+      <div class="faq">
+        <details><summary>Preciso baixar na loja de aplicativos?</summary><p>Não. Abra o link no Chrome do celular e toque em Instalar app. O AutoMarcen fica na tela inicial e abre como qualquer app.</p></details>
+        <details><summary>Funciona no computador e no tablet?</summary><p>Sim. No computador ele abre no navegador, e na tela maior aparecem as ferramentas e o painel de propriedades lado a lado.</p></details>
+        <details><summary>Os preços das chapas e ferragens já vêm prontos?</summary><p>Não, porque cada região tem um valor. Você digita os preços dos seus fornecedores uma vez e o app guarda para os próximos projetos.</p></details>
+        <details><summary>A inteligência artificial acerta sempre?</summary><p>Ela lê o croqui e monta o móvel, mas confira sempre as medidas antes de cortar. Você pode ajustar tudo no desenho.</p></details>
+        <details><summary>E se eu ficar sem internet?</summary><p>Depois da primeira vez, o app abre e funciona sem sinal. O projeto fica salvo no aparelho e vai para a conta quando a internet voltar. Só a parte de inteligência artificial precisa de internet.</p></details>
+        <details><summary>Meus projetos ficam seguros?</summary><p>Cada conta só enxerga os próprios projetos. Você também pode exportar tudo num arquivo para guardar uma cópia.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section id="contato" class="band">
+    <div class="wrap final">
+      <h2>Faça o próximo orçamento no AutoMarcen.</h2>
+      <p class="lead">Teste com um móvel que você já tem para orçar. Se ficar alguma dúvida, chame no WhatsApp.</p>
+      <div class="ctas">
+        <a class="btn pri" data-app href="https://luisgustavopapkecongo19-ui.github.io/automarcen/">Abrir o AutoMarcen</a>
+        <a class="btn" data-whats href="#contato">Falar no WhatsApp</a>
+      </div>
+      <p class="warn" id="semNumero" hidden>Número de WhatsApp ainda não preenchido. Coloque em CONFIG.whatsapp, no fim deste arquivo.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap"><span>AutoMarcen · versão beta</span><span>Feito no Brasil para marceneiros</span><a href="../termos/">Termos e privacidade</a></div>
+</footer>
+
+<script>
+/* ===== Preencha aqui ===== */
+const CONFIG={
+  whatsapp:"",        // número com 55 + DDD, só dígitos. Ex.: "5511987654321"
+  mensagem:"Olá! Vi o AutoMarcen e quero saber mais.",
+  nome:"AutoMarcen completo",
+  preco:"",           // ex.: "R$ 49,90"  (vazio mostra "Consulte")
+  periodo:"",         // ex.: "por mês"
+  teste:"",           // ex.: "14 dias grátis para testar"  (vazio esconde)
+  app:"https://luisgustavopapkecongo19-ui.github.io/automarcen/"
+};
+/* ========================= */
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+  const num=String(CONFIG.whatsapp||"").replace(/\D/g,"");
+  $$("[data-app]").forEach(a=>a.href=CONFIG.app);
+  if(num){
+    const url="https://wa.me/"+num+"?text="+encodeURIComponent(CONFIG.mensagem);
+    $$("[data-whats]").forEach(a=>{a.href=url;a.target="_blank";a.rel="noopener"});
+  }else $("#semNumero").hidden=false;
+  $("#pNome").textContent=CONFIG.nome;
+  const v=$("#pValor");
+  if(CONFIG.preco){v.textContent=CONFIG.preco+" "; if(CONFIG.periodo){const s=document.createElement("small");s.textContent=CONFIG.periodo;v.append(s)}}
+  if(CONFIG.teste){const t=$("#pTeste");t.textContent=CONFIG.teste;t.hidden=false}
+})();
+</script>
+</body>
+</html>
