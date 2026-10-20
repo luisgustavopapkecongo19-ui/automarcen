@@ -65,9 +65,11 @@
         </div>
       </div>
       <aside class="side" id="side" aria-label="Painel">
-        <div class="ptabs" role="tablist">
+        <div class="ptabs">
+          <div role="tablist" aria-label="Painel" style="display:contents">
           <button role="tab" data-ptab="props" aria-selected="true">Propriedades</button>
           <button role="tab" data-ptab="layers" aria-selected="false">Camadas</button>
+          </div>
           <button class="ib x" id="bClosePanel" aria-label="Fechar painel"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
         </div>
         <div class="pbody" id="pbody"></div>

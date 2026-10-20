@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="pt-BR"><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>AutoMarcen</title>
 <meta name="theme-color" content="#15181d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -422,9 +422,11 @@ textarea.code{font:calc(12px*var(--fs,1))/1.45 var(--mono);min-height:150px;word
         </div>
       </div>
       <aside class="side" id="side" aria-label="Painel">
-        <div class="ptabs" role="tablist">
+        <div class="ptabs">
+          <div role="tablist" aria-label="Painel" style="display:contents">
           <button role="tab" data-ptab="props" aria-selected="true">Propriedades</button>
           <button role="tab" data-ptab="layers" aria-selected="false">Camadas</button>
+          </div>
           <button class="ib x" id="bClosePanel" aria-label="Fechar painel"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
         </div>
         <div class="pbody" id="pbody"></div>
@@ -2128,7 +2130,7 @@ const finGrp=(lb,key,cur)=>`<div class="grp"><span class="lb">${lb}</span><div c
 const sameFin=(mods,k)=>mods.every(m=>+m[k]===+mods[0][k])?+mods[0][k]:-1;
 const LW=[[.8,"Fina"],[1.4,"Média"],[2.4,"Grossa"]];
 const lwSeg=(cur,key)=>`<div class="seg">${LW.map(([v,n])=>`<button data-${key}="${v}" aria-pressed="${Math.abs((cur||1.4)-v)<.01}">${n}</button>`).join("")}</div>`;
-const layerSel=(cur,k)=>`<select class="in" data-k="${k}">${P.layers.map(l=>`<option value="${l.id}"${l.id===cur?" selected":""}>${esc(l.name)}</option>`).join("")}</select>`;
+const layerSel=(cur,k)=>`<select class="in" data-k="${k}" aria-label="Camada">${P.layers.map(l=>`<option value="${l.id}"${l.id===cur?" selected":""}>${esc(l.name)}</option>`).join("")}</select>`;
 
 function renderPanel(){
   const pb=$("#pbody");
