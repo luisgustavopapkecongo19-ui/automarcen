@@ -1,0 +1,50 @@
+# Confere toda semana se o OpenJarvis original mudou e, se mudou,
+# abre (ou atualiza) um pull request trazendo a nova versão para OpenJarvis/.
+name: Atualizar OpenJarvis
+
+on:
+  schedule:
+    - cron: "17 9 * * 1" # segundas-feiras, 09:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Comparar com o repositório original
+        id: comparar
+        run: |
+          novo=$(git ls-remote https://github.com/open-jarvis/OpenJarvis.git HEAD | cut -f1)
+          atual=$(cat OpenJarvis/.upstream-commit)
+          echo "novo=$novo" >> "$GITHUB_OUTPUT"
+          echo "atual=$atual" >> "$GITHUB_OUTPUT"
+          if [ "$novo" = "$atual" ]; then
+            echo "OpenJarvis já está na versão mais recente ($atual)."
+          fi
+
+      - name: Baixar a nova versão
+        if: steps.comparar.outputs.novo != steps.comparar.outputs.atual
+        run: bash .github/scripts/sincronizar-openjarvis.sh "${{ steps.comparar.outputs.novo }}"
+
+      - name: Abrir pull request
+        if: steps.comparar.outputs.novo != steps.comparar.outputs.atual
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: atualizar-openjarvis
+          commit-message: "Atualiza OpenJarvis para ${{ steps.comparar.outputs.novo }}"
+          title: "Atualização do OpenJarvis disponível"
+          body: |
+            O projeto original do OpenJarvis mudou.
+
+            - Versão atual: `${{ steps.comparar.outputs.atual }}`
+            - Nova versão: `${{ steps.comparar.outputs.novo }}`
+            - Mudanças: https://github.com/open-jarvis/OpenJarvis/compare/${{ steps.comparar.outputs.atual }}...${{ steps.comparar.outputs.novo }}
+
+            Revise e aprove (merge) para atualizar a pasta `OpenJarvis/`.
+          delete-branch: true
