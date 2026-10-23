@@ -1,13 +1,13 @@
-/* ===== modelos da comunidade: quem aceitar ajuda a montar modelos prontos melhores. Só na versão instalável =====
-   Começa DESLIGADO. A pessoa liga em ⋯ → Minha conta → "Ajudar a melhorar os modelos" (fica guardado neste aparelho, por conta).
-   Ligado, o app manda para a coleção "contribuicoes" do Firestore uma cópia SEM IDENTIFICAÇÃO só da estrutura dos móveis do projeto:
+/* ===== modelos da comunidade: a estrutura dos móveis de todos ajuda a montar modelos prontos melhores. Só na versão instalável =====
+   Faz parte dos termos (termos/index.html, cláusula 8): vale para quem entrou na conta e aceitou os termos (tmOk, termos.js).
+   Antes era a opção "Ajudar a melhorar os modelos" em Minha conta; desde a v0.17 não há mais o botão.
+   O app manda para a coleção "contribuicoes" do Firestore uma cópia SEM IDENTIFICAÇÃO só da estrutura dos móveis do projeto:
    tipo (pela palavra do nome: balcão, aéreo, roupeiro…), medidas, posição de um móvel em relação ao outro, vãos, portas, gavetas,
    interior, puxador e acabamento. NUNCA vai: nome do projeto ou do móvel, cliente, preços, telefone, fotos, desenho solto nem a conta.
    Um documento por projeto, com id sorteado e guardado só neste aparelho (sem ligação com a conta), regravado quando os móveis mudam.
-   As regras (firestore.rules) deixam gravar e apagar pelo id, mas não ler; só o dono do AutoMarcen lê, aprova e publica em "modelos".
-   Ao desligar, o app apaga o que saiu deste aparelho. */
-const CT={key:"automarcen-modelos-ok", map:"automarcen-contrib", wait:60000, timer:0, fila:new Set(), off:false, base:null};
-const ctOk=()=>!!(FB.user&&lsGet(CT.key+"-"+FB.user.uid)==="1");
+   As regras (firestore.rules) deixam gravar e apagar pelo id quem aceitou os termos, mas não ler; só o dono do AutoMarcen lê, aprova e publica em "modelos". */
+const CT={map:"automarcen-contrib", wait:60000, timer:0, fila:new Set(), off:false, base:null};
+const ctOk=()=>tmOk();
 const ctMapa=()=>{try{const o=JSON.parse(lsGet(CT.map)||"{}"); return o&&typeof o==="object"?o:{}}catch(_){return {}}};
 const ctId=()=>{const a="abcdefghijklmnopqrstuvwxyz0123456789", r=crypto.getRandomValues(new Uint8Array(24)); return Array.from(r,b=>a[b%36]).join("")};
 const ctHash=s=>{let h=0x811c9dc5; for(let i=0;i<s.length;i++){h^=s.charCodeAt(i); h=Math.imul(h,0x01000193)} return (h>>>0).toString(36)};
@@ -75,24 +75,8 @@ async function contribFlush(){
 }
 // ao entrar na conta (ou abrir o app já entrado): confere todos os projetos; os que não mudaram não sobem de novo
 function contribAll(){ if(ctOk()) for(const p of store.projects) contribLater(p.id) }
-async function contribSet(on){
-  if(!FB.user) return;
-  lsSet(CT.key+"-"+FB.user.uid,on?"1":"0");
-  if(on){CT.off=false; contribAll(); return}
-  CT.fila.clear(); clearTimeout(CT.timer);
-  const mapa=ctMapa(); let falhou=0;
-  for(const pid of Object.keys(mapa)){
-    try{await FB.db.collection("contribuicoes").doc(mapa[pid].id).delete(); delete mapa[pid]}catch(_){falhou++}
-  }
-  lsSet(CT.map,JSON.stringify(mapa));
-  toast(falhou?"Desligado. Parte do que já foi enviado não foi apagada agora; tente de novo com internet":"Desligado. Nada mais é enviado, e o que saiu deste aparelho foi apagado");
-}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&CT.fila.size) contribFlush()});
 addEventListener("online",()=>{if(CT.fila.size) contribFlush()});
-function contribBlock(){
-  return `<div class="grp"><label class="chk"><input type="checkbox" id="aMod"${ctOk()?" checked":""}> <span><b>Ajudar a melhorar os modelos</b></span></label>
-    <span class="note">Manda uma cópia <b>sem identificação</b> só do formato dos seus móveis: medidas, vãos, portas, gavetas, interior, puxador e cor. Com ela montamos modelos prontos melhores para todos. <b>Não vai</b> nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta. Desligado, nada é enviado; ao desligar, o que saiu deste aparelho é apagado.</span></div>`;
-}
 
 /* ----- etapa 2: o dono aprova; os aprovados viram "Modelos da comunidade" no botão Móvel e exemplos para a IA ----- */
 const DONO_UID="JeTDR8WREIhuSVvH2xhnu68jlGR2"; // o mesmo de donoApp() em firestore.rules
@@ -185,7 +169,7 @@ async function showAprovar(aba){
       for(const d of snap.docs){const x=d.data(), ms=mdParse(x.s); if(!ms.length) continue; const k=JSON.stringify(ms);
         if(!grupos.has(k)) grupos.set(k,{ms,ids:[],quando:x.quando&&x.quando.toDate?x.quando.toDate():null}); grupos.get(k).ids.push(d.id)}
       const G=[...grupos.values()];
-      if(!G.length){box.innerHTML=`<p class="note">Nada novo por enquanto. Os móveis chegam aqui quando alguém liga “Ajudar a melhorar os modelos” em Minha conta.</p>`; return}
+      if(!G.length){box.innerHTML=`<p class="note">Nada novo por enquanto. Os móveis chegam aqui quando quem aceitou os termos salva um projeto com móveis diferentes dos modelos prontos.</p>`; return}
       box.innerHTML=`<p class="note">${G.length} formato${G.length>1?"s":""} enviado${G.length>1?"s":""}. Aprovar publica para todos no botão Móvel e serve de exemplo para a IA. Recusar apaga.</p>`+G.map((g,i)=>`<div class="callout" data-g="${i}">
         <div style="display:flex;gap:10px;align-items:center">${mdSvg(g.ms,96,72)}<div class="note">${g.ids.length>1?`<b>${g.ids.length} pessoas enviaram igual</b><br>`:""}${g.quando?g.quando.toLocaleDateString("pt-BR"):""}</div></div>
         ${g.ms.map((o,j)=>`<label class="chk"><input type="checkbox" data-mv="${j}" checked> <span>${esc(mdLinha(o))}</span></label>`).join("")}

@@ -21,7 +21,7 @@ const finGrp=(lb,key,cur)=>`<div class="grp"><span class="lb">${lb}</span><div c
 const sameFin=(mods,k)=>mods.every(m=>+m[k]===+mods[0][k])?+mods[0][k]:-1;
 const LW=[[.8,"Fina"],[1.4,"Média"],[2.4,"Grossa"]];
 const lwSeg=(cur,key)=>`<div class="seg">${LW.map(([v,n])=>`<button data-${key}="${v}" aria-pressed="${Math.abs((cur||1.4)-v)<.01}">${n}</button>`).join("")}</div>`;
-const layerSel=(cur,k)=>`<select class="in" data-k="${k}">${P.layers.map(l=>`<option value="${l.id}"${l.id===cur?" selected":""}>${esc(l.name)}</option>`).join("")}</select>`;
+const layerSel=(cur,k)=>`<select class="in" data-k="${k}" aria-label="Camada">${P.layers.map(l=>`<option value="${l.id}"${l.id===cur?" selected":""}>${esc(l.name)}</option>`).join("")}</select>`;
 
 function renderPanel(){
   const pb=$("#pbody");

@@ -29,6 +29,11 @@
       <button role="menuitem" data-m="org"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Clientes e relatórios</button>
       <button role="menuitem" data-m="proj"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h6l2 2h8v11H4z"/></svg>Projetos</button>
       <a role="menuitem" href="https://claude.ai/artifact/LoxsKJPStynxu7bheZw574" target="_blank" rel="noopener" data-m="guide"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6M12 17.2v.1"/></svg>Guia: como usar</a>
+<!--#if app-->
+      <a role="menuitem" href="termos/" target="_blank" rel="noopener" data-m="termos"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>Termos e privacidade</a>
+<!--#else-->
+      <a role="menuitem" href="https://luisgustavopapkecongo19-ui.github.io/automarcen/termos/" target="_blank" rel="noopener" data-m="termos"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>Termos e privacidade</a>
+<!--#endif-->
     </div>
   </header>
 
@@ -60,9 +65,11 @@
         </div>
       </div>
       <aside class="side" id="side" aria-label="Painel">
-        <div class="ptabs" role="tablist">
+        <div class="ptabs">
+          <div role="tablist" aria-label="Painel" style="display:contents">
           <button role="tab" data-ptab="props" aria-selected="true">Propriedades</button>
           <button role="tab" data-ptab="layers" aria-selected="false">Camadas</button>
+          </div>
           <button class="ib x" id="bClosePanel" aria-label="Fechar painel"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
         </div>
         <div class="pbody" id="pbody"></div>

@@ -226,6 +226,7 @@ td.code{font:600 calc(12px*var(--fs,1)) var(--mono)}
 @media (max-width:600px){.mrow{grid-template-columns:1fr 1fr!important}.mrow>:first-child{grid-column:1/-1}}
 .badge{display:inline-block;font-size:calc(11px*var(--fs,1));font-weight:600;color:var(--warn);background:color-mix(in srgb,var(--warn) 14%,transparent);padding:2px 8px;border-radius:999px}
 
+.dlg .chk a,.dlg .grp a{color:var(--accent)}
 /* folhas modais */
 .scrim{position:fixed;inset:0;background:rgba(10,12,16,.5);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 @media (min-width:700px){.scrim{align-items:center}}
@@ -384,6 +385,7 @@ textarea.code{font:calc(12px*var(--fs,1))/1.45 var(--mono);min-height:150px;word
       <button role="menuitem" data-m="org"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Clientes e relatórios</button>
       <button role="menuitem" data-m="proj"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h6l2 2h8v11H4z"/></svg>Projetos</button>
       <a role="menuitem" href="https://claude.ai/artifact/LoxsKJPStynxu7bheZw574" target="_blank" rel="noopener" data-m="guide"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6M12 17.2v.1"/></svg>Guia: como usar</a>
+      <a role="menuitem" href="https://luisgustavopapkecongo19-ui.github.io/automarcen/termos/" target="_blank" rel="noopener" data-m="termos"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>Termos e privacidade</a>
     </div>
   </header>
 
@@ -415,9 +417,11 @@ textarea.code{font:calc(12px*var(--fs,1))/1.45 var(--mono);min-height:150px;word
         </div>
       </div>
       <aside class="side" id="side" aria-label="Painel">
-        <div class="ptabs" role="tablist">
+        <div class="ptabs">
+          <div role="tablist" aria-label="Painel" style="display:contents">
           <button role="tab" data-ptab="props" aria-selected="true">Propriedades</button>
           <button role="tab" data-ptab="layers" aria-selected="false">Camadas</button>
+          </div>
           <button class="ib x" id="bClosePanel" aria-label="Fechar painel"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
         </div>
         <div class="pbody" id="pbody"></div>
@@ -1647,7 +1651,7 @@ const finGrp=(lb,key,cur)=>`<div class="grp"><span class="lb">${lb}</span><div c
 const sameFin=(mods,k)=>mods.every(m=>+m[k]===+mods[0][k])?+mods[0][k]:-1;
 const LW=[[.8,"Fina"],[1.4,"Média"],[2.4,"Grossa"]];
 const lwSeg=(cur,key)=>`<div class="seg">${LW.map(([v,n])=>`<button data-${key}="${v}" aria-pressed="${Math.abs((cur||1.4)-v)<.01}">${n}</button>`).join("")}</div>`;
-const layerSel=(cur,k)=>`<select class="in" data-k="${k}">${P.layers.map(l=>`<option value="${l.id}"${l.id===cur?" selected":""}>${esc(l.name)}</option>`).join("")}</select>`;
+const layerSel=(cur,k)=>`<select class="in" data-k="${k}" aria-label="Camada">${P.layers.map(l=>`<option value="${l.id}"${l.id===cur?" selected":""}>${esc(l.name)}</option>`).join("")}</select>`;
 
 function renderPanel(){
   const pb=$("#pbody");

@@ -1,12 +1,13 @@
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
 //#if app
-const APP_VER="v0.16 beta";
+const APP_VER="v0.17 beta";
 //#else
 const APP_VER="v0.13.3 beta";
 //#endif
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
 //#if app
+  {v:"v0.17 beta",items:["Termos do AutoMarcen: em ⋯ → Termos e privacidade estão os Termos de uso, com as regras de uso aceitável, e a Política de privacidade.","Para entrar na conta, marque que leu e aceita os termos. Quem já tem conta aceita uma vez ao abrir o app.","A opção Ajudar a melhorar os modelos saiu de Minha conta e agora faz parte dos termos: o app manda só o formato dos móveis, sem nome, cliente, preço, telefone, foto nem a sua conta.","Quando alguma parte do app falha, ele manda um aviso curto e anônimo para o erro ser corrigido mais rápido."]},
   {v:"v0.16 beta",items:["Modelos da comunidade: em Móvel, abaixo dos modelos prontos, aparecem os móveis e conjuntos que marceneiros que usam o AutoMarcen montaram e que foram revisados um a um. Toque e insira, depois ajuste as medidas.","A IA do Croqui por foto e do Falar ou escrever usa esses modelos aprovados como referência de proporções quando a foto ou a frase não diz tudo. As medidas que você der continuam valendo."]},
   {v:"v0.15 beta",items:["Modelos da comunidade, primeira parte: em ⋯ → Minha conta há a opção Ajudar a melhorar os modelos. Ela vem desligada.","Ligada, o app manda uma cópia sem identificação só do formato dos seus móveis (medidas, vãos, portas, gavetas, puxador e cor). Não vai nome, cliente, preço, telefone, foto nem a sua conta.","Os melhores formatos, revisados um a um, vão virar modelos prontos no botão Móvel."]},
   {v:"v0.14.1 beta",items:["Puxador cava no 3D: agora aparece como uma faixa escura e limpa no alto da gaveta ou na borda da porta, sem os riscos que piscavam na frente."]},
@@ -105,8 +106,8 @@ const KB=[
  {id:"cliente",q:"Como mando o orçamento para o cliente aprovar?",k:"cliente mandar enviar pdf whatsapp resumo proposta compartilhar aprovar aprovacao link 3d situacao aprovado recusado",go:"orcamento",
   a:"Na aba **Orçamento**:\n1. Em **Seu WhatsApp**, coloque o seu número. Ele fica guardado.\n2. **Gerar PDF** cria a proposta com 3D, desenho e valores, e com os botões **Aprovar pelo WhatsApp** e **Pedir ajuste**.\n3. **3D para o cliente** salva um arquivo que o cliente abre no celular para girar o móvel, abrir as portas e tocar em **Aprovar**.\n4. **Copiar resumo** copia um texto curto para colar no WhatsApp.\nQuando o cliente responder, marque a **Situação do orçamento** (Enviado, Aprovado ou Recusado). Ela aparece na lista de Projetos."},
 //#if app
- {id:"modelos",q:"O que é Ajudar a melhorar os modelos?",k:"ajudar melhorar modelos comunidade da comunidade aprovados compartilhar enviar dados anonimo privacidade lgpd permissao desligar formato moveis",go:"conta",
-  a:"É uma opção em **⋯ → Minha conta**, que vem **desligada**. Ligada, o app manda uma cópia **sem identificação** só do formato dos seus móveis: medidas, vãos, portas, gavetas, interior, puxador e cor. Com ela montamos modelos prontos melhores, que aparecem em **Móvel → Modelos da comunidade** depois de revisados um a um. A IA também usa os modelos aprovados como referência.\n**Não vai** nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta.\nPara parar, desmarque a opção: nada mais é enviado e o que saiu deste aparelho é apagado."},
+ {id:"termos",q:"Quais são os termos e o que o app envia?",k:"termos uso politica privacidade lgpd dados anonimo enviar envia aceitar aceite pirataria copiar revender conta compartilhada modelos comunidade melhorar falha erro aviso",go:"conta",
+  a:"Os **Termos de uso**, que incluem as regras de uso aceitável, e a **Política de privacidade** ficam em **⋯ → Termos e privacidade**. Para entrar na conta, você marca que leu e aceita.\nPelos termos, a IA guarda os seus projetos na sua conta para você usar em outro momento, e o app manda uma cópia **sem identificação** só do formato dos seus móveis (medidas, vãos, portas, gavetas, interior, puxador e cor) para montar os **Modelos da comunidade**, e um aviso curto e anônimo quando alguma parte do app falha. A IA analisa o projeto aberto quando você pede ajuda a ela.\n**Não vai** nome do projeto ou do móvel, cliente, preço, telefone, foto nem a sua conta. A conta da marcenaria pode ser usada pelos sócios e funcionários dela, mas não emprestada a outras empresas, e não é permitido copiar, piratear nem revender o app."},
 //#endif
  {id:"foto",q:"Dá para montar o móvel a partir de uma foto do croqui?",k:"foto croqui papel camera imagem tirar foto desenho a mao ler escanear",go:"inserir",
 //#if app
