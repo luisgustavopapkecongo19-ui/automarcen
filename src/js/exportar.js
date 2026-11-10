@@ -52,7 +52,7 @@ function toSVG(){
 function toDXF(){return buildDXF(P.items.filter(visible).map(it=>({layer:layer(it.layer).name,prims:prims(it)})))}
 function partsCSV(){
   const A=allParts(), mt=P.mat, rows=[["Código","Peça","Móvel","Qtd","Comprimento (mm)","Largura (mm)","Espessura (mm)","Material","Fita de borda (m)"]];
-  for(const p of A.parts) rows.push([p.code,p.name,p.mod,p.q,p.L,p.W,mt[p.mat].t,mt[p.mat].name,(p.edge*p.q).toFixed(2).replace(".",",")]);
+  for(const p of A.parts) rows.push([p.code,p.name,p.mod,p.q,p.L,p.W,mt[p.mat].t,mt[p.mat].name+(p.fin!=null?" — "+(FIN[p.fin]?.[0]||""):""),(p.edge*p.q).toFixed(2).replace(".",",")]);
   return "﻿"+rows.map(r=>r.map(v=>{const s=String(v); return /[;"\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s}).join(";")).join("\r\n");
 }
 $("#bExport").onclick=showExport;
