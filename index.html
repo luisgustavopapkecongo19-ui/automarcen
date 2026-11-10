@@ -2756,7 +2756,7 @@ function toSVG(){
 function toDXF(){return buildDXF(P.items.filter(visible).map(it=>({layer:layer(it.layer).name,prims:prims(it)})))}
 function partsCSV(){
   const A=allParts(), mt=P.mat, rows=[["Código","Peça","Móvel","Qtd","Comprimento (mm)","Largura (mm)","Espessura (mm)","Material","Fita de borda (m)"]];
-  for(const p of A.parts) rows.push([p.code,p.name,p.mod,p.q,p.L,p.W,mt[p.mat].t,mt[p.mat].name,(p.edge*p.q).toFixed(2).replace(".",",")]);
+  for(const p of A.parts) rows.push([p.code,p.name,p.mod,p.q,p.L,p.W,mt[p.mat].t,mt[p.mat].name+(p.fin!=null?" — "+(FIN[p.fin]?.[0]||""):""),(p.edge*p.q).toFixed(2).replace(".",",")]);
   return "﻿"+rows.map(r=>r.map(v=>{const s=String(v); return /[;"\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s}).join(";")).join("\r\n");
 }
 $("#bExport").onclick=showExport;
@@ -2795,28 +2795,40 @@ function showImage(url){dlg(`<h2>Imagem da prancha</h2><p>Toque e segure a image
 const MATS=[["caixa","Caixa"],["frente","Frentes"],["fundo","Fundos"]];
 function allParts(){
   const mods=P.items.filter(i=>i.t==="mod"&&visible(i)); let parts=[]; const hw={hinge:0,slide:0,pull:0,rod:0,rodSup:0,track:0,perfil:0,push:0}, warns=[], holes=[];
-  mods.forEach((m,mi)=>{const g=modGeom(m), L=String.fromCharCode(65+(mi%26))+(mi>=26?Math.floor(mi/26):"");
-    g.parts.forEach((p,i)=>parts.push(Object.assign(p,{code:L+(i+1),mi}))); for(const k in hw) hw[k]+=g.hw[k]||0; holes.push(...g.holes.map(h=>Object.assign(h,{mi,mod:m.name,L}))); if(g.warn) warns.push(m.name+": "+g.warn)});
+  mods.forEach((m,mi)=>{const g=modGeom(m), L=String.fromCharCode(65+(mi%26))+(mi>=26?Math.floor(mi/26):""), fb=+m.fb||0, ff=+m.ff||0;
+    g.parts.forEach((p,i)=>parts.push(Object.assign(p,{code:L+(i+1),mi,fin:p.mat==="fundo"?null:(p.mat==="frente"?ff:fb)}))); for(const k in hw) hw[k]+=g.hw[k]||0; holes.push(...g.holes.map(h=>Object.assign(h,{mi,mod:m.name,L}))); if(g.warn) warns.push(m.name+": "+g.warn)});
   const panels=P.items.filter(i=>i.t==="rect"&&visible(i)&&+i.dep>0&&+i.dep<=5);
   panels.forEach((r,i)=>{const w=Math.abs(r.b[0]-r.a[0])*10,h=Math.abs(r.b[1]-r.a[1])*10, L=Math.round(Math.max(w,h)), W=Math.round(Math.min(w,h));
-    parts.push({mid:r.id,mod:"Desenho",name:`Painel ${num(+r.dep*10,0)} mm`,q:1,L,W,mat:"caixa",edge:2*(L+W)/1000,code:"P"+(i+1),mi:mods.length+i})});
+    parts.push({mid:r.id,mod:"Desenho",name:`Painel ${num(+r.dep*10,0)} mm`,q:1,L,W,mat:"caixa",fin:null,edge:2*(L+W)/1000,code:"P"+(i+1),mi:mods.length+i})});
   if(P.items.some(i=>i.t==="rect"&&visible(i)&&+i.dep>5)) warns.push("Retângulos com mais de 5 cm de profundidade aparecem no 3D, mas não entram na lista de peças. Para isso, use Gerar móvel.");
   return {parts,hw,warns,holes,mods,hasParts:mods.length+panels.length>0};
 }
 const planCache={key:"",res:null};
+const CAT_LB={caixa:"Caixa",frente:"Frentes",fundo:"Fundos"};
+/* chave do grupo de corte: categoria + acabamento. Fundos (e painéis sem cor) ficam num grupo só.
+   Cada cor é uma chapa diferente, então entra como grupo próprio na lista de corte e no orçamento. */
+function partKey(p){return (p.mat==="fundo"||p.fin==null)?p.mat:p.mat+":"+p.fin}
+/* grupos presentes no projeto, na ordem caixa → frentes → fundos e, dentro de cada um, pela cor */
+function matGroups(A){
+  const ord=["caixa","frente","fundo"], seen=new Set(), gs=[];
+  A.parts.forEach(p=>{const key=partKey(p); if(seen.has(key))return; seen.add(key); gs.push({key,cat:p.mat,fin:(p.mat==="fundo")?null:(p.fin==null?null:+p.fin)})});
+  gs.sort((a,b)=>ord.indexOf(a.cat)-ord.indexOf(b.cat)||((a.fin==null?-1:a.fin)-(b.fin==null?-1:b.fin)));
+  return gs.map(g=>{const fn=g.fin!=null?FIN[g.fin]?.[0]:""; const mt=P.mat[g.cat];
+    return {...g, mt, label:CAT_LB[g.cat]+(fn?" · "+fn:""), matName:fn||mt.name}});
+}
 function cutPlans(A){
-  const res={}, ins={};
+  const groups=matGroups(A), plan={}, ins={};
   const S=P.sheet, UW=S.w-2*(+S.trim||0), UH=S.h-2*(+S.trim||0), fits=(L,W)=>(L<=UW&&W<=UH)||(W<=UW&&L<=UH);
-  for(const [k] of MATS){const pieces=[]; A.parts.filter(p=>p.mat===k).forEach(p=>{for(let i=0;i<p.q;i++){
-    if(fits(p.L,p.W)||k!=="fundo"){pieces.push({code:p.code,name:p.name,L:p.L,W:p.W,mi:p.mi}); continue}
+  for(const g of groups){const pieces=[]; A.parts.filter(p=>partKey(p)===g.key).forEach(p=>{for(let i=0;i<p.q;i++){
+    if(fits(p.L,p.W)||p.mat!=="fundo"){pieces.push({code:p.code,name:p.name,L:p.L,W:p.W,mi:p.mi}); continue}
     // fundo maior que a chapa: divide em partes iguais (a emenda fica atrás de uma prateleira ou divisória)
     let done=false; for(let n=2;n<=4&&!done;n++) for(const [L,W] of [[Math.ceil(p.L/n),p.W],[p.L,Math.ceil(p.W/n)]]) if(!done&&fits(L,W)){for(let j=1;j<=n;j++) pieces.push({code:p.code,name:`${p.name} (parte ${j}/${n})`,L,W,mi:p.mi}); done=true}
     if(!done) pieces.push({code:p.code,name:p.name,L:p.L,W:p.W,mi:p.mi});
-  }}); ins[k]=pieces}
-  const key=JSON.stringify([ins,P.sheet,MATS.map(([k])=>!!P.mat[k].grain)]);
+  }}); ins[g.key]=pieces}
+  const key=JSON.stringify([ins,P.sheet,groups.map(g=>!!g.mt.grain)]);
   if(planCache.key===key) return planCache.res;
-  for(const [k] of MATS) res[k]=ins[k].length?pack(ins[k],P.sheet,!!P.mat[k].grain):{sheets:[],over:[],util:0,area:0,offA:0};
-  planCache.key=key; planCache.res=res; return res;
+  for(const g of groups) plan[g.key]=ins[g.key].length?pack(ins[g.key],P.sheet,!!g.mt.grain):{sheets:[],over:[],util:0,area:0,offA:0};
+  const res={groups,plan}; planCache.key=key; planCache.res=res; return res;
 }
 const modHue=i=>`hsl(${(i*67+24)%360} 62% 74%)`;
 function sheetSVG(sh,S){
@@ -2831,12 +2843,13 @@ function renderParts(){
   const w=$("#partsWrap"), A=allParts();
   if(!A.hasParts){w.innerHTML=`<div class="phead"><div><h1>Peças e plano de corte</h1><p>Lista de corte, fita de borda, ferragens e aproveitamento de chapas.</p></div></div>
     <div class="card" style="text-align:center;padding:36px 16px"><h2>Nenhum móvel no projeto</h2><p class="note" style="margin-bottom:14px">As peças são geradas a partir dos móveis do projeto. Insira um modelo pronto${hasDrawing()?" ou transforme o armário que você desenhou em móvel":""}.</p><div class="row" style="justify-content:center"><button class="btn pri" data-go="insert">Inserir móvel</button>${hasDrawing()?`<button class="btn" data-go="conv">Gerar do desenho</button>`:""}</div></div>`; return}
-  const plans=cutPlans(A), S=P.sheet, mt=P.mat;
+  const {groups,plan}=cutPlans(A), S=P.sheet, mt=P.mat;
+  const grs=groups.filter(g=>plan[g.key].sheets.length);
   const edge=A.parts.reduce((a,p)=>a+p.edge*p.q,0), np=A.parts.reduce((a,p)=>a+p.q,0);
-  const tiles=MATS.filter(([k])=>plans[k].sheets.length).map(([k,l])=>`<div class="tile"><span class="lb">${l}</span><span class="v">${plans[k].sheets.length} chapa${plans[k].sheets.length>1?"s":""}</span><span class="s">${esc(mt[k].name)} · ${Math.round(plans[k].util*100)}% de aproveitamento</span></div>`).join("");
-  const over=MATS.flatMap(([k])=>plans[k].over.map(p=>p.code+" "+p.name+" ("+p.L+"×"+p.W+")"));
-  const splits=[...new Set(MATS.flatMap(([k])=>plans[k].sheets.flatMap(sh=>sh.pieces.filter(p=>/\(parte 1\//.test(p.name)).map(p=>p.code+" "+p.name.replace(/ \(parte 1\/(\d)\)/," em $1 partes")))))];
-  const offs=MATS.flatMap(([k,l])=>plans[k].sheets.flatMap((sh,i)=>(sh.off||[]).map(o=>({l,k,i,w:Math.max(o.w,o.h),h:Math.min(o.w,o.h)}))));
+  const tiles=grs.map(g=>`<div class="tile"><span class="lb">${esc(g.label)}</span><span class="v">${plan[g.key].sheets.length} chapa${plan[g.key].sheets.length>1?"s":""}</span><span class="s">${esc(g.matName)} · ${Math.round(plan[g.key].util*100)}% de aproveitamento</span></div>`).join("");
+  const over=grs.flatMap(g=>plan[g.key].over.map(p=>p.code+" "+p.name+" ("+p.L+"×"+p.W+")"));
+  const splits=[...new Set(grs.flatMap(g=>plan[g.key].sheets.flatMap(sh=>sh.pieces.filter(p=>/\(parte 1\//.test(p.name)).map(p=>p.code+" "+p.name.replace(/ \(parte 1\/(\d)\)/," em $1 partes")))))];
+  const offs=grs.flatMap(g=>plan[g.key].sheets.flatMap((sh,i)=>(sh.off||[]).map(o=>({l:g.label,i,w:Math.max(o.w,o.h),h:Math.min(o.w,o.h)}))));
   w.innerHTML=`<div class="phead"><div><h1>Peças e plano de corte</h1><p>${A.mods.length} móve${A.mods.length>1?"is":"l"} · ${np} peças · chapa ${S.w} × ${S.h} mm</p></div><button class="btn" data-ex="csv">Exportar CSV</button></div>
   <div class="tiles">${tiles}
     ${offs.length?`<div class="tile"><span class="lb">Sobras aproveitáveis</span><span class="v">${offs.length}</span><span class="s">${offs.slice(0,4).map(o=>`${o.l} ${o.w}×${o.h}`).join(" · ")}${offs.length>4?" …":""}</span></div>`:""}
@@ -2848,13 +2861,13 @@ function renderParts(){
     <label class="f"><span class="lb">Chapa (mm)</span><input class="in n" data-sh="size" value="${S.w}x${S.h}" inputmode="decimal"></label>
     <label class="f"><span class="lb">Serra (mm)</span><input class="in n" data-sh="kerf" value="${S.kerf}" inputmode="decimal"></label>
     <label class="f"><span class="lb">Refilo (mm)</span><input class="in n" data-sh="trim" value="${S.trim}" inputmode="decimal"></label></div>
-    <div class="grains">${MATS.filter(([k])=>plans[k].sheets.length).map(([k,l])=>`<label class="chk"><input type="checkbox" data-grain="${k}" ${mt[k].grain?"checked":""}> <span>${l}: respeitar o veio <small>(${esc(mt[k].name)})</small></span></label>`).join("")}</div>
+    <div class="grains">${MATS.filter(([k])=>grs.some(g=>g.cat===k)).map(([k,l])=>`<label class="chk"><input type="checkbox" data-grain="${k}" ${mt[k].grain?"checked":""}> <span>${l}: respeitar o veio <small>(${esc(mt[k].name)})</small></span></label>`).join("")}</div>
     <p class="note" style="margin-top:8px">Cortes de ponta a ponta (próprios para esquadrejadeira). A ferramenta testa várias arrumações e fica com a que usa menos chapas e deixa a maior sobra inteira. Com o veio ligado, as peças não giram: o comprimento da peça segue o comprimento da chapa (o veio). A espessura da serra entra entre cada corte. Sobras com pelo menos ${OFF_MIN[0]/10} × ${OFF_MIN[1]/10} cm aparecem tracejadas em verde.</p></div>
   <div class="card"><h2>Lista de corte</h2><div class="tbl"><table><thead><tr><th>Cód.</th><th>Peça</th><th>Móvel</th><th class="n">Qtd</th><th class="n">Comp.</th><th class="n">Larg.</th><th>Material</th><th class="n">Fita (m)</th></tr></thead><tbody>
-    ${A.parts.map(p=>`<tr><td class="code"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${modHue(p.mi)};margin-right:6px"></span>${p.code}</td><td>${esc(p.name)}</td><td>${esc(p.mod)}</td><td class="n">${p.q}</td><td class="n">${p.L}</td><td class="n">${p.W}</td><td>${esc(mt[p.mat].name)}</td><td class="n">${num(p.edge*p.q,2)}</td></tr>`).join("")}
+    ${A.parts.map(p=>`<tr><td class="code"><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${modHue(p.mi)};margin-right:6px"></span>${p.code}</td><td>${esc(p.name)}</td><td>${esc(p.mod)}</td><td class="n">${p.q}</td><td class="n">${p.L}</td><td class="n">${p.W}</td><td>${esc(p.fin!=null?(FIN[p.fin]?.[0]||mt[p.mat].name):mt[p.mat].name)}</td><td class="n">${num(p.edge*p.q,2)}</td></tr>`).join("")}
   </tbody></table></div><p class="note" style="margin-top:8px">Medidas em milímetros. Comprimento × largura da peça acabada.</p></div>
   ${holesHTML(A)}
-  ${MATS.filter(([k])=>plans[k].sheets.length).map(([k,l])=>`<div class="card"><h2>${l}: ${esc(mt[k].name)}</h2><div class="sheets">${plans[k].sheets.map((sh,i)=>`<div class="sheetc"><div class="cap"><span>Chapa ${i+1} de ${plans[k].sheets.length}</span><span>${sh.pieces.length} peças · ${Math.round(sh.pieces.reduce((a,p)=>a+p.w*p.h,0)/(S.w*S.h)*100)}%</span></div>${sheetSVG(sh,S)}</div>`).join("")}</div></div>`).join("")}`;
+  ${grs.map(g=>`<div class="card"><h2>${esc(g.label)}${g.fin==null?": "+esc(g.mt.name):""}</h2><div class="sheets">${plan[g.key].sheets.map((sh,i)=>`<div class="sheetc"><div class="cap"><span>Chapa ${i+1} de ${plan[g.key].sheets.length}</span><span>${sh.pieces.length} peças · ${Math.round(sh.pieces.reduce((a,p)=>a+p.w*p.h,0)/(S.w*S.h)*100)}%</span></div>${sheetSVG(sh,S)}</div>`).join("")}</div></div>`).join("")}`;
 }
 /* furação: dobradiças (caneco Ø35), corrediças (sistema 32) e cavilhas das junções */
 const hingeYs=(h,n)=>{if(n<=1) return [Math.round(h/2)]; const a=100,b=h-100; return Array.from({length:n},(_,k)=>Math.round(a+(b-a)*k/(n-1)))};
@@ -2890,8 +2903,8 @@ $("#partsWrap").addEventListener("change",e=>{
 document.addEventListener("click",e=>{const g=e.target.closest("[data-go]"); if(g&&g.dataset.go==="insert"){setView("draw"); showInsert()} if(g&&g.dataset.go==="conv"){setView("draw"); convFromDrawing()} const x=e.target.closest(".page [data-ex]"); if(x) doExport(x.dataset.ex)});
 
 function quote(){
-  const A=allParts(), plans=cutPlans(A), B=P.budget, mt=P.mat, lines=[];
-  for(const [k] of MATS){const n=plans[k].sheets.length; if(n) lines.push({k:"m:"+k,l:mt[k].name,d:`${n} chapa${n>1?"s":""} × ${brl(mt[k].price)}`,v:n*(+mt[k].price||0),u:+mt[k].price||0})}
+  const A=allParts(), pc=cutPlans(A), B=P.budget, lines=[];
+  for(const g of pc.groups){const n=pc.plan[g.key].sheets.length, price=+g.mt.price||0; if(n) lines.push({k:"m:"+g.cat,l:g.label,d:`${n} chapa${n>1?"s":""} × ${brl(g.mt.price)}`,v:n*price,u:price})}
   const edge=A.parts.reduce((a,p)=>a+p.edge*p.q,0)*1.1;
   const hw=(k,q,l,d)=>{ if(q) lines.push({k,l,d:`${d} × ${brl(B[k])}`,v:q*(+B[k]||0),u:+B[k]||0}) };
   hw("edge",edge,"Fita de borda",`${num(edge,1)} m`);
@@ -2905,7 +2918,7 @@ function quote(){
   hw("rodSup",A.hw.rodSup,"Suportes de cabide",A.hw.rodSup);
   const missing=lines.filter(l=>!(l.u>0));
   const mat=lines.reduce((a,l)=>a+l.v,0), labor=+B.labor||0, inst=+B.install||0, base=mat+labor+inst, margin=base*(+B.margin||0)/100;
-  return {A,plans,lines,missing,mat,labor,inst,base,margin,total:base+margin};
+  return {A,pc,lines,missing,mat,labor,inst,base,margin,total:base+margin};
 }
 /* preços em branco: avisa antes de mandar um total incompleto para o cliente */
 function missingText(Q){return Q.missing.map(l=>l.k.startsWith("m:")?"chapa "+l.l:l.l.toLowerCase()).join(", ")}
@@ -3132,7 +3145,7 @@ function orgQuote(p){
   const c=orgCache.get(p.id); if(c&&c.u===p.updated) return c.q;
   const old=P; let q=null;
   try{P=p; const r=quote(); q={mat:r.mat,labor:r.labor,inst:r.inst,margin:r.margin,total:r.total,
-    sheets:MATS.map(([k])=>({k,n:r.plans[k].sheets.length}))}}catch(_){q=null}finally{P=old}
+    sheets:MATS.map(([k])=>({k,n:r.pc.groups.filter(g=>g.cat===k).reduce((a,g)=>a+r.pc.plan[g.key].sheets.length,0)}))}}catch(_){q=null}finally{P=old}
   orgCache.set(p.id,{u:p.updated,q}); return q;
 }
 function orgData(){
@@ -3391,9 +3404,10 @@ function setView(v){
 }
 
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
-const APP_VER="v0.16 beta";
+const APP_VER="v0.16.1 beta";
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
+  {v:"v0.16.1 beta",items:["Cor nas abas Plano de corte e Orçamento: ao trocar o acabamento de um móvel, cada cor agora vira uma chapa separada na lista de corte, nos desenhos das chapas e no orçamento. Móveis de cores diferentes não são mais somados como se fossem a mesma chapa."]},
   {v:"v0.16 beta",items:["Modelos da comunidade: em Móvel, abaixo dos modelos prontos, aparecem os móveis e conjuntos que marceneiros que usam o AutoMarcen montaram e que foram revisados um a um. Toque e insira, depois ajuste as medidas.","A IA do Croqui por foto e do Falar ou escrever usa esses modelos aprovados como referência de proporções quando a foto ou a frase não diz tudo. As medidas que você der continuam valendo."]},
   {v:"v0.15 beta",items:["Modelos da comunidade, primeira parte: em ⋯ → Minha conta há a opção Ajudar a melhorar os modelos. Ela vem desligada.","Ligada, o app manda uma cópia sem identificação só do formato dos seus móveis (medidas, vãos, portas, gavetas, puxador e cor). Não vai nome, cliente, preço, telefone, foto nem a sua conta.","Os melhores formatos, revisados um a um, vão virar modelos prontos no botão Móvel."]},
   {v:"v0.14.1 beta",items:["Puxador cava no 3D: agora aparece como uma faixa escura e limpa no alto da gaveta ou na borda da porta, sem os riscos que piscavam na frente."]},

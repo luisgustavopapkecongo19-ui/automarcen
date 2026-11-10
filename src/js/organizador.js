@@ -10,7 +10,7 @@ function orgQuote(p){
   const c=orgCache.get(p.id); if(c&&c.u===p.updated) return c.q;
   const old=P; let q=null;
   try{P=p; const r=quote(); q={mat:r.mat,labor:r.labor,inst:r.inst,margin:r.margin,total:r.total,
-    sheets:MATS.map(([k])=>({k,n:r.plans[k].sheets.length}))}}catch(_){q=null}finally{P=old}
+    sheets:MATS.map(([k])=>({k,n:r.pc.groups.filter(g=>g.cat===k).reduce((a,g)=>a+r.pc.plan[g.key].sheets.length,0)}))}}catch(_){q=null}finally{P=old}
   orgCache.set(p.id,{u:p.updated,q}); return q;
 }
 function orgData(){
