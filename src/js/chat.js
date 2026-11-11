@@ -1,17 +1,19 @@
 /* ===================== ajuda: assistente que tira dúvidas ===================== */
 //#if app
-const APP_VER="v0.16.1 beta";
+const APP_VER="v0.16.2 beta";
 //#else
-const APP_VER="v0.13.4 beta";
+const APP_VER="v0.13.5 beta";
 //#endif
 /* novidades de cada versão: a mais nova primeiro. Ao publicar uma versão, acrescente um item aqui e mude APP_VER */
 const CHANGES=[
 //#if app
+  {v:"v0.16.2 beta",items:["Área de MDF: as abas Peças e corte e Orçamento, e também o PDF do cliente, agora mostram quantos metros quadrados de MDF o projeto gasta, somando as chapas de todos os materiais e cores. Fica mais fácil conferir o material e comparar com o preço por m² do fornecedor."]},
   {v:"v0.16.1 beta",items:["Cor nas abas Plano de corte e Orçamento: ao trocar o acabamento de um móvel, cada cor agora vira uma chapa separada na lista de corte, nos desenhos das chapas e no orçamento. Móveis de cores diferentes não são mais somados como se fossem a mesma chapa."]},
   {v:"v0.16 beta",items:["Modelos da comunidade: em Móvel, abaixo dos modelos prontos, aparecem os móveis e conjuntos que marceneiros que usam o AutoMarcen montaram e que foram revisados um a um. Toque e insira, depois ajuste as medidas.","A IA do Croqui por foto e do Falar ou escrever usa esses modelos aprovados como referência de proporções quando a foto ou a frase não diz tudo. As medidas que você der continuam valendo."]},
   {v:"v0.15 beta",items:["Modelos da comunidade, primeira parte: em ⋯ → Minha conta há a opção Ajudar a melhorar os modelos. Ela vem desligada.","Ligada, o app manda uma cópia sem identificação só do formato dos seus móveis (medidas, vãos, portas, gavetas, puxador e cor). Não vai nome, cliente, preço, telefone, foto nem a sua conta.","Os melhores formatos, revisados um a um, vão virar modelos prontos no botão Móvel."]},
   {v:"v0.14.1 beta",items:["Puxador cava no 3D: agora aparece como uma faixa escura e limpa no alto da gaveta ou na borda da porta, sem os riscos que piscavam na frente."]},
 //#else
+  {v:"v0.13.5 beta",items:["Área de MDF: as abas Peças e corte e Orçamento, e também o PDF do cliente, agora mostram quantos metros quadrados de MDF o projeto gasta, somando as chapas de todos os materiais e cores. Fica mais fácil conferir o material e comparar com o preço por m² do fornecedor."]},
   {v:"v0.13.4 beta",items:["Cor nas abas Plano de corte e Orçamento: ao trocar o acabamento de um móvel, cada cor agora vira uma chapa separada na lista de corte, nos desenhos das chapas e no orçamento. Móveis de cores diferentes não são mais somados como se fossem a mesma chapa."]},
   {v:"v0.13.3 beta",items:["Puxador cava no 3D: agora aparece como uma faixa escura e limpa no alto da gaveta ou na borda da porta, sem os riscos que piscavam na frente."]},
 //#endif

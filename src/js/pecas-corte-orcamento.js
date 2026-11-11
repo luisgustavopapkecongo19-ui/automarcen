@@ -53,12 +53,14 @@ function renderParts(){
   const {groups,plan}=cutPlans(A), S=P.sheet, mt=P.mat;
   const grs=groups.filter(g=>plan[g.key].sheets.length);
   const edge=A.parts.reduce((a,p)=>a+p.edge*p.q,0), np=A.parts.reduce((a,p)=>a+p.q,0);
+  const totSheets=grs.reduce((a,g)=>a+plan[g.key].sheets.length,0), mdfArea=totSheets*S.w*S.h/1e6;
   const tiles=grs.map(g=>`<div class="tile"><span class="lb">${esc(g.label)}</span><span class="v">${plan[g.key].sheets.length} chapa${plan[g.key].sheets.length>1?"s":""}</span><span class="s">${esc(g.matName)} · ${Math.round(plan[g.key].util*100)}% de aproveitamento</span></div>`).join("");
   const over=grs.flatMap(g=>plan[g.key].over.map(p=>p.code+" "+p.name+" ("+p.L+"×"+p.W+")"));
   const splits=[...new Set(grs.flatMap(g=>plan[g.key].sheets.flatMap(sh=>sh.pieces.filter(p=>/\(parte 1\//.test(p.name)).map(p=>p.code+" "+p.name.replace(/ \(parte 1\/(\d)\)/," em $1 partes")))))];
   const offs=grs.flatMap(g=>plan[g.key].sheets.flatMap((sh,i)=>(sh.off||[]).map(o=>({l:g.label,i,w:Math.max(o.w,o.h),h:Math.min(o.w,o.h)}))));
   w.innerHTML=`<div class="phead"><div><h1>Peças e plano de corte</h1><p>${A.mods.length} móve${A.mods.length>1?"is":"l"} · ${np} peças · chapa ${S.w} × ${S.h} mm</p></div><button class="btn" data-ex="csv">Exportar CSV</button></div>
   <div class="tiles">${tiles}
+    <div class="tile"><span class="lb">Área de MDF</span><span class="v">${num(mdfArea,1)} m²</span><span class="s">${totSheets} chapa${totSheets>1?"s":""} no total · ${S.w} × ${S.h} mm</span></div>
     ${offs.length?`<div class="tile"><span class="lb">Sobras aproveitáveis</span><span class="v">${offs.length}</span><span class="s">${offs.slice(0,4).map(o=>`${o.l} ${o.w}×${o.h}`).join(" · ")}${offs.length>4?" …":""}</span></div>`:""}
     <div class="tile"><span class="lb">Fita de borda</span><span class="v">${num(edge,1)} m</span><span class="s">sem perda; o orçamento soma 10%</span></div>
     <div class="tile"><span class="lb">Ferragens</span><span class="v">${A.hw.hinge+A.hw.slide+A.hw.pull+A.hw.track+A.hw.push}</span><span class="s">${A.hw.hinge} dobradiças · ${A.hw.slide} pares de corrediças · ${A.hw.pull} puxadores${A.hw.track?` · ${A.hw.track} kits de porta de correr`:""}${A.hw.perfil?` · ${num(A.hw.perfil,2)} m de perfil puxador`:""}${A.hw.push?` · ${A.hw.push} fechos toque`:""}${A.hw.rod?` · ${num(A.hw.rod,2)} m de tubo de cabide`:""}</span></div>
@@ -111,7 +113,7 @@ document.addEventListener("click",e=>{const g=e.target.closest("[data-go]"); if(
 
 function quote(){
   const A=allParts(), pc=cutPlans(A), B=P.budget, lines=[];
-  for(const g of pc.groups){const n=pc.plan[g.key].sheets.length, price=+g.mt.price||0; if(n) lines.push({k:"m:"+g.cat,l:g.label,d:`${n} chapa${n>1?"s":""} × ${brl(g.mt.price)}`,v:n*price,u:price})}
+  for(const g of pc.groups){const n=pc.plan[g.key].sheets.length, price=+g.mt.price||0; if(n) lines.push({k:"m:"+g.cat,l:g.label,d:`${n} chapa${n>1?"s":""} · ${num(n*P.sheet.w*P.sheet.h/1e6,1)} m² × ${brl(g.mt.price)}`,v:n*price,u:price})}
   const edge=A.parts.reduce((a,p)=>a+p.edge*p.q,0)*1.1;
   const hw=(k,q,l,d)=>{ if(q) lines.push({k,l,d:`${d} × ${brl(B[k])}`,v:q*(+B[k]||0),u:+B[k]||0}) };
   hw("edge",edge,"Fita de borda",`${num(edge,1)} m`);
