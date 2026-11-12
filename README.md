@@ -4,6 +4,8 @@ Ferramenta de projeto de marcenaria para celular, tablet e computador: desenho t
 
 **Abrir:** https://luisgustavopapkecongo19-ui.github.io/automarcen/
 
+**Página de divulgação:** https://luisgustavopapkecongo19-ui.github.io/automarcen/conheca/ (arquivo `conheca/index.html`; o número do WhatsApp e o preço ficam em `CONFIG`, no fim do arquivo. Ela fica fora do app guardado no aparelho.)
+
 ## Instalar no Android
 1. Abra o link acima no Chrome.
 2. Toque em **Instalar app** no topo da ferramenta, ou no menu ⋮ do Chrome → **Instalar app** (ou **Adicionar à tela inicial**).
